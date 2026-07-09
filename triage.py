@@ -78,7 +78,7 @@ _HEURISTIC_RULES: list[tuple[TaskCategory, re.Pattern]] = [
     (TaskCategory.NAMED_ENTITY_RECOGNITION,
      re.compile(r"named entit(y|ies)", re.IGNORECASE)),
     (TaskCategory.CODE_DEBUGGING,
-     re.compile(r"\bbug\b|\bdebug(ging)?\b|\bfix (it|the bug|this function|this code)\b|\bcorrect this code\b|\brefactor\b|\berror in\b", re.IGNORECASE)),
+     re.compile(r"\bbug\b|\bdebug(ging)?\b|\bfix (it|the bug|this function|this code)\b|\bcorrect this code\b|\brefactor\b|\berror in\b|\boptimize\b|\brecursion\b|\bmemoization\b", re.IGNORECASE)),
     (TaskCategory.CODE_GENERATION,
      re.compile(r"\bwrite\s+(a|an|the)\b[^.\n]*\bfunction\b|\bwrite code\b|\bimplement\s+(a|an|the)\b|\bpython script\b|\bwrite\s+(a|an|the)\b[^.\n]*\bprogram\b", re.IGNORECASE)),
     (TaskCategory.SENTIMENT_CLASSIFICATION,

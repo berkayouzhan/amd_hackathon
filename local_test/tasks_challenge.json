@@ -1,0 +1,62 @@
+[
+  {
+    "task_id": "ch1_math_word_tricky",
+    "prompt": "If a farmer has 120 apples and sells 1/3 of them to Alice, then Alice gives 25% of her bought apples to Bob, and finally Bob sells 5 apples to Charlie, how many apples does Bob have left? Solve step by step."
+  },
+  {
+    "task_id": "ch2_math_bypass_tier0",
+    "prompt": "Calculate the result of: 15.5 * (40 / (2.5 + 1.5)) - 100"
+  },
+  {
+    "task_id": "ch3_logic_einstein_mini",
+    "prompt": "Four people (A, B, C, D) sit in a row. A is next to B but not next to C. C is next to D. If B is at the first position, who is at the third position?"
+  },
+  {
+    "task_id": "ch4_logic_liar_paradox",
+    "prompt": "Knights always tell the truth, and Knaves always lie. Person X says 'Either I am a Knave or Y is a Knight.' Y says nothing. Deduce the identities of X and Y."
+  },
+  {
+    "task_id": "ch5_code_debug_concurrency",
+    "prompt": "This Python code tries to fetch URLs concurrently but has a race condition or performance issue. Find and fix it:\n\nimport threading\nresults = []\ndef fetch(url):\n    # Simulate network fetch\n    results.append(url)\n\nthreads = [threading.Thread(target=fetch, args=(u,)) for u in ['url1', 'url2']]\nfor t in threads: t.start()\n# The user wants to print results after all threads finish. Fix the missing wait logic."
+  },
+  {
+    "task_id": "ch6_code_gen_algorithm",
+    "prompt": "Write a Python function `lru_cache_custom(capacity: int)` that implements a simple Least Recently Used (LRU) Cache with get and put methods. Respond with code only."
+  },
+  {
+    "task_id": "ch7_ner_empty_case",
+    "prompt": "Extract all named entities (person, organization, location) as JSON from this text: 'The global temperature is rising due to greenhouse gases. Oceans are absorbing more heat.' If no entities, return an empty array."
+  },
+  {
+    "task_id": "ch8_ner_heavy_overlap",
+    "prompt": "Extract entities from: 'Apple Inc. CEO Tim Cook met with Google LLC representatives in Washington D.C. on January 15th, 2026.' Respond with strict JSON."
+  },
+  {
+    "task_id": "ch9_sentiment_ambiguous",
+    "prompt": "Classify the sentiment of this review and justify it: 'The film was technically brilliant with stunning cinematography and great acting, but the plot was so boring and predictable that I almost fell asleep.'"
+  },
+  {
+    "task_id": "ch10_summarize_nested",
+    "prompt": "Summarize the key findings of this text in 15 words or less: 'Research indicates that a combination of high-intensity interval training (HIIT) and a Mediterranean diet yields a 14% increase in cardiovascular efficiency in adults aged 40-60, compared to moderate training alone, while also improving cognitive scores by 8% over a six-month evaluation period.'"
+  },
+  {
+    "task_id": "ch11_compressor_stress",
+    "prompt": "This    is    a    stress    test     for    whitespace     compression.    \n\n\n\n\nPreserve this: \n```python\ndef    dummy():\n    #    indents   must   be   kept\n    pass\n```\nAnd      compress       this       as       well."
+  },
+  {
+    "task_id": "ch12_math_huge_numbers",
+    "prompt": "What is 987654321 * 123456789?"
+  },
+  {
+    "task_id": "ch13_logic_grid",
+    "prompt": "Three musicians play different instruments (guitar, piano, drums) and live in different cities (London, Paris, Berlin). The guitarist lives in London. The pianist does not live in Paris. One musician is named Sarah, one is John, and one is Dave. Dave plays drums. John does not live in London. Who lives in Paris?"
+  },
+  {
+    "task_id": "ch14_code_debug_recursion",
+    "prompt": "This recursive fibonacci function crashes with recursion depth error for large inputs. Optimize it using memoization or iteration:\n\ndef fib(n):\n    if n <= 1: return n\n    return fib(n-1) + fib(n-2)"
+  },
+  {
+    "task_id": "ch15_factual_obscure",
+    "prompt": "In what year was the Treaty of Westphalia signed, and which major European conflict did it end?"
+  }
+]

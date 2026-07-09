@@ -81,6 +81,12 @@ class TestHeuristicClassify:
     def test_code_debugging_correct(self):
         assert _heuristic_classify("Correct this code snippet.") == TaskCategory.CODE_DEBUGGING
 
+    def test_code_debugging_optimize(self):
+        assert _heuristic_classify("Optimize this recursive function.") == TaskCategory.CODE_DEBUGGING
+
+    def test_code_debugging_memoization(self):
+        assert _heuristic_classify("Implement memoization for this function.") == TaskCategory.CODE_DEBUGGING
+
     def test_sentiment_tone(self):
         assert _heuristic_classify("Classify the tone of the user feedback.") == TaskCategory.SENTIMENT_CLASSIFICATION
 
