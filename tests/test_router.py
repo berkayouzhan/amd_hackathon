@@ -147,3 +147,58 @@ def test_reasoning_and_code_roles_never_attempt_gemma(router, client):
         router.solve("Write a function that returns 42.")
 
     assert not any("gemma" in m for m in call_log), "Code gorevinde Gemma'ya YANLISLIKLA cagri yapildi!"
+
+
+def test_local_model_success_routes_to_local_and_spends_no_remote_tokens(router, client):
+    """Yerel model basarili bir cikti verirse (dogrulama gecerse), Fireworks
+    cagrisi YAPILMAZ ve 0 Fireworks token harcanir."""
+    # Sentiment gorevi (heuristic ile sentiment_classification kategorisine eslesir)
+    prompt = "Classify the sentiment of this text: I love this hackathon."
+
+    # Llama yerel cikarimini mock'luyoruz
+    local_res = make_completion_result("positive", model="local/qwen2.5-1.5b-instruct", total_tokens=0)
+
+    with patch("local_model.run_local_inference", return_value=local_res) as mock_local, \
+         patch.object(client, "chat_completion") as mock_remote:
+        result = router.solve(prompt)
+
+    # Yerel cikarim cagrildi mi?
+    mock_local.assert_called_once()
+    # Fireworks API cagrisi YAPILMADI mi?
+    mock_remote.assert_not_called()
+
+    assert result.source == RouteSource.LOCAL_MODEL
+    assert result.model_used == "local/qwen2.5-1.5b-instruct"
+    assert result.tokens_spent == 0  # 0 Fireworks token
+    assert result.text == "positive"
+
+
+def test_local_model_failure_falls_back_to_remote_and_succeeds(router, client):
+    """Yerel model ciktisi dogrulamadan gecemezse (gecersiz JSON vb.), sistem
+     Fireworks API'sine duser (fallback)."""
+    # Gemma'yi gecici olarak devre disi birakiyoruz ki dogrudan default modele dussun
+    router._settings.gemma.model = None
+
+    # NER gorevi (heuristic ile named_entity_recognition kategorisine eslesir)
+    prompt = "Extract all named entities from this sentence as JSON: Maria works at Acme."
+
+    # Yerel model gecersiz (JSON olmayan) cikti donsun
+    local_res = make_completion_result("Plain text that is not JSON", model="local/qwen2.5-1.5b-instruct", total_tokens=0)
+
+    # Uzak model gecerli JSON donsun
+    remote_res = make_completion_result('[{"text": "Maria", "type": "person"}]', model="accounts/fireworks/models/minimax-m3", total_tokens=40)
+
+    with patch("local_model.run_local_inference", return_value=local_res) as mock_local, \
+         patch.object(client, "chat_completion", return_value=remote_res) as mock_remote:
+        result = router.solve(prompt)
+
+    # Hem yerel cikarim hem de uzak Fireworks cagrildi mi?
+    mock_local.assert_called_once()
+    mock_remote.assert_called_once()
+
+    # Sonuc yerel modelden degil, uzak modelden gelmeli
+    assert result.source == RouteSource.DEFAULT_MODEL
+    assert result.model_used == "accounts/fireworks/models/minimax-m3"
+    assert result.text == '[{"text": "Maria", "type": "person"}]'
+    assert result.tokens_spent == 40
+

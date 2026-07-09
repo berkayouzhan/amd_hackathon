@@ -11,16 +11,24 @@
 
 FROM python:3.11-slim
 
+# Derleme araclari ve curl kurulumu
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Once sadece requirements'i kopyala -> Docker layer cache'i sayesinde
-# kod degistiginde bagimliliklar yeniden kurulmaz (build hizi icin onemli).
+# Yerel model dosyasini HuggingFace uzerinden indir (1.1GB)
+RUN curl -L -o /app/qwen2.5-1.5b-instruct-q4_k_m.gguf https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
+
+# Once sadece requirements'i kopyala -> cache verimliligi icin
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Derleme bittikten sonra imaj boyutunu optimize etmek icin build tools'lari kaldirabiliriz
+RUN apt-get purge -y --auto-remove build-essential && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 

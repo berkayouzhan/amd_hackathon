@@ -2,3 +2,5 @@ openai>=1.40,<2.0
 python-dotenv>=1.0,<2.0
 tenacity>=8.2,<9.0
 requests>=2.31,<3.0
+llama-cpp-python>=0.2.70
+

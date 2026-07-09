@@ -74,6 +74,7 @@ _DEFAULT_SYSTEM_PROMPT = "Answer the user's task accurately and concisely, in En
 
 class RouteSource(Enum):
     DETERMINISTIC = "deterministic"
+    LOCAL_MODEL = "local_model"
     GEMMA_BONUS = "gemma_bonus"
     DEFAULT_MODEL = "default_model"
     REASONING_MODEL = "reasoning_model"
@@ -128,6 +129,27 @@ class OptiRouter:
         tokens_spent = triage_tokens
         result = None
         source: Optional[RouteSource] = None
+
+        # --- Local Model Tier (0 Fireworks Token) ---
+        # Sentiment, NER ve Summarization gibi genel hafif gorevlerde once yerel modeli dene
+        if category in (TaskCategory.SENTIMENT_CLASSIFICATION, TaskCategory.NAMED_ENTITY_RECOGNITION, TaskCategory.TEXT_SUMMARIZATION):
+            from local_model import run_local_inference
+            system_prompt = _SYSTEM_PROMPTS.get(category, _DEFAULT_SYSTEM_PROMPT) if category else _DEFAULT_SYSTEM_PROMPT
+            local_res = run_local_inference(system_prompt, compressed, max_tokens)
+            if local_res is not None:
+                # Yerel model ciktisini validate et. Gecerliyse direkt don (0 Fireworks token!)
+                if validate(local_res, category):
+                    logger.info("Yerel model basarili oldu (0 Fireworks token) - Kategori: %s", category.value)
+                    return RouteResult(
+                        text=local_res.text,
+                        source=RouteSource.LOCAL_MODEL,
+                        category=category,
+                        model_used=local_res.model,
+                        tokens_spent=tokens_spent,
+                        was_corrected=False,
+                    )
+                else:
+                    logger.warning("Yerel model ciktisi dogrulamadan gecemedi, Fireworks'e dusulüyor - Kategori: %s", category.value)
 
         if role == "default":
             result, source = self._try_gemma_then_default(messages, max_tokens)
