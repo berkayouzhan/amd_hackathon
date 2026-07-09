@@ -1,0 +1,34 @@
+[
+  {
+    "task_id": "t1_factual",
+    "prompt": "What is the capital of France, and roughly what is its population?"
+  },
+  {
+    "task_id": "t2_math",
+    "prompt": "A shirt costs $40. It is discounted by 15%, then a further 10% is taken off the discounted price. What is the final price?"
+  },
+  {
+    "task_id": "t3_sentiment",
+    "prompt": "Classify the sentiment (positive, negative, or neutral) of this review and briefly justify it: 'The delivery was fast but the product broke after two days.'"
+  },
+  {
+    "task_id": "t4_summarization",
+    "prompt": "Summarise the following text in exactly one sentence: 'The city council voted on Tuesday to approve a new public transit line connecting the northern suburbs to downtown. The project, expected to cost $200 million, will take three years to complete and is projected to reduce daily car commutes by roughly 12,000 trips.'"
+  },
+  {
+    "task_id": "t5_ner",
+    "prompt": "Extract all named entities (person, organization, location, date) from this sentence as JSON: 'Maria Gonzalez joined Acme Corp in Berlin on March 3rd, 2024.'"
+  },
+  {
+    "task_id": "t6_code_debug",
+    "prompt": "This Python function should return the sum of a list, but it has a bug. Find and fix it:\ndef sum_list(nums):\n    total = 0\n    for n in nums:\n        total = n\n    return total"
+  },
+  {
+    "task_id": "t7_logic",
+    "prompt": "Three friends - Alex, Blair, and Casey - each own a different pet (cat, dog, fish). Alex does not own the fish. Blair does not own the cat or the fish. Who owns which pet?"
+  },
+  {
+    "task_id": "t8_codegen",
+    "prompt": "Write a Python function `is_palindrome(s: str) -> bool` that returns True if a string is a palindrome, ignoring case and spaces."
+  }
+]

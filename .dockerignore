@@ -1,0 +1,22 @@
+# Sirlari ve gereksiz dosyalari Docker build context'inin/imajinin disinda tut.
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+
+__pycache__/
+*.pyc
+.pytest_cache/
+
+venv/
+.venv/
+
+tests/
+requirements-dev.txt
+
+HANDOFF.md
+README.md
+
+local_test/results.json
