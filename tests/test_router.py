@@ -105,6 +105,35 @@ def test_corrective_retry_failure_keeps_first_answer(router, client):
     assert result.tokens_spent == 40
 
 
+def test_invalid_gemma_answer_retries_on_default_model(router, client):
+    """Gemma'dan gelen geçersiz (JSON olmayan) cevap, default modele (minimax-m3)
+    giden düzeltici bir retry tetiklemelidir."""
+    prompt = "Extract all named entities from this sentence as JSON: Maria works at Acme."
+
+    call_log = []
+
+    def fake(model, messages, **kwargs):
+        call_log.append((model, len(messages)))
+        if "gemma" in model:
+            # Gemma geçersiz bir ilk cevap dönsün
+            return make_completion_result("Gemma returned plain text instead of JSON.", model=model, total_tokens=30)
+        # minimax-m3 (default model) düzeltilmiş cevabı dönsün
+        return make_completion_result('[{"text": "Maria", "type": "person"}]', model=model, total_tokens=50)
+
+    with patch.object(client, "chat_completion", side_effect=fake):
+        result = router.solve(prompt)
+
+    # 1. İlk çağrı Gemma'ya gitmeli (messages uzunluğu <= 2)
+    # 2. İkinci çağrı (retry) minimax-m3'e (default model) gitmeli (messages uzunluğu > 2)
+    assert call_log[0] == (router._settings.gemma.model, 2)
+    assert "minimax" in call_log[1][0]
+    assert call_log[1][1] > 2  # retry context'i olmalı
+    assert result.was_corrected is True
+    assert result.text == '[{"text": "Maria", "type": "person"}]'
+    assert result.model_used == "accounts/fireworks/models/minimax-m3"
+
+
+
 def test_reasoning_and_code_roles_never_attempt_gemma(router, client):
     """Gemma denemesi SADECE 'default' rolundeki kategoriler icin yapilmali -
     math/logic/code gorevlerinde Gemma'ya hic dokunulmamali."""

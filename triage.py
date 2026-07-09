@@ -78,18 +78,18 @@ _HEURISTIC_RULES: list[tuple[TaskCategory, re.Pattern]] = [
     (TaskCategory.NAMED_ENTITY_RECOGNITION,
      re.compile(r"named entit(y|ies)", re.IGNORECASE)),
     (TaskCategory.CODE_DEBUGGING,
-     re.compile(r"\bbug\b|\bdebug(ging)?\b|\bfix (it|the bug)\b", re.IGNORECASE)),
+     re.compile(r"\bbug\b|\bdebug(ging)?\b|\bfix (it|the bug|this function|this code)\b|\bcorrect this code\b|\brefactor\b|\berror in\b", re.IGNORECASE)),
     (TaskCategory.CODE_GENERATION,
-     re.compile(r"\bwrite\s+(a|an|the)\b[^.\n]*\bfunction\b", re.IGNORECASE)),
+     re.compile(r"\bwrite\s+(a|an|the)\b[^.\n]*\bfunction\b|\bwrite code\b|\bimplement\s+(a|an|the)\b|\bpython script\b|\bwrite\s+(a|an|the)\b[^.\n]*\bprogram\b", re.IGNORECASE)),
     (TaskCategory.SENTIMENT_CLASSIFICATION,
-     re.compile(r"\bsentiment\b", re.IGNORECASE)),
+     re.compile(r"\bsentiment\b|\bclassify\s+(the\s+)?tone\b|\btone\s+of\b|\bpositive\s+or\s+negative\b", re.IGNORECASE)),
     (TaskCategory.TEXT_SUMMARIZATION,
      re.compile(r"\bsummar(i[sz]e|y|i[sz]ation)\b", re.IGNORECASE)),
     (TaskCategory.LOGICAL_REASONING,
      re.compile(r"who (owns|is|has)\b|each own[s]? a different|logic puzzle|"
-                r"true or false", re.IGNORECASE)),
+                r"true or false|\bpuzzle\b|\briddle\b|\bdeduce\b", re.IGNORECASE)),
     (TaskCategory.MATHEMATICAL_REASONING,
-     re.compile(r"\$\s?\d|\d+\s?%|discount(ed)?|per\s?cent|percentage", re.IGNORECASE)),
+     re.compile(r"\$\s?\d|\d+\s?%|discount(ed)?|per\s?cent|percentage|\bcalculate\b|\bequation\b|\bcompute\b|\bplus\b|\bminus\b|\bmultiplied\b|\bdivided\b|\bsum\s+of\b|\bfraction\b|\bratio\b", re.IGNORECASE)),
 ]
 
 _CLASSIFIER_SYSTEM_PROMPT = (

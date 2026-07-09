@@ -66,6 +66,27 @@ class TestHeuristicClassify:
     def test_mathematical_dollar(self):
         assert _heuristic_classify("A ticket costs $50 and there are 3 people.") == TaskCategory.MATHEMATICAL_REASONING
 
+    def test_mathematical_calculate(self):
+        assert _heuristic_classify("Calculate the sum of all elements.") == TaskCategory.MATHEMATICAL_REASONING
+
+    def test_mathematical_equation(self):
+        assert _heuristic_classify("Solve the following equation.") == TaskCategory.MATHEMATICAL_REASONING
+
+    def test_code_generation_write_code(self):
+        assert _heuristic_classify("Write code to reverse a binary tree.") == TaskCategory.CODE_GENERATION
+
+    def test_code_generation_implement(self):
+        assert _heuristic_classify("Implement a binary search algorithm.") == TaskCategory.CODE_GENERATION
+
+    def test_code_debugging_correct(self):
+        assert _heuristic_classify("Correct this code snippet.") == TaskCategory.CODE_DEBUGGING
+
+    def test_sentiment_tone(self):
+        assert _heuristic_classify("Classify the tone of the user feedback.") == TaskCategory.SENTIMENT_CLASSIFICATION
+
+    def test_logic_riddle(self):
+        assert _heuristic_classify("Solve this riddle about three boxes.") == TaskCategory.LOGICAL_REASONING
+
     def test_no_match_returns_none(self):
         """Hicbir regex'e uymayan metin None donmeli (model-fallback tetiklenir)."""
         assert _heuristic_classify("What is the capital of France?") is None

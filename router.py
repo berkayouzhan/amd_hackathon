@@ -148,7 +148,10 @@ class OptiRouter:
 
         # --- Speculative validation + tek seferlik duzeltici retry ---
         if not validate(result, category):
-            corrected = self._attempt_corrective_retry(result.model, messages, result.text, max_tokens)
+            # Eger ilk cevap Gemma'dan geldiyse ve gecersizse, retry'i risk alip tekrar
+            # Gemma'ya gondermek yerine kararli serverless default modele (minimax-m3) yonlendir.
+            retry_model = self._settings.roles.default if "gemma" in result.model.lower() else result.model
+            corrected = self._attempt_corrective_retry(retry_model, messages, result.text, max_tokens)
             if corrected is not None:
                 tokens_spent += corrected.total_tokens
                 text = corrected.text
@@ -158,7 +161,7 @@ class OptiRouter:
             text=text,
             source=source,
             category=category,
-            model_used=result.model,
+            model_used=corrected.model if (was_corrected and corrected) else result.model,
             tokens_spent=tokens_spent,
             was_corrected=was_corrected,
         )
