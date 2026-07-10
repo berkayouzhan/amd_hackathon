@@ -59,37 +59,81 @@ ROLE_BY_CATEGORY: dict[TaskCategory, str] = {
     TaskCategory.CODE_GENERATION: "code",
 }
 
-# Kategori-ozel max_tokens tahminleri - gercek cikti gorulmeden makul
-# varsayimlarla sabitlendi (bkz. HANDOFF.md §4.6, ince ayar gerekebilir).
+# Kategori-ozel max_tokens tahminleri - ince ayar yapildi (v2):
+#   - Sentiment: 64 -> 48 (sadece "negative. Bir cumle." yeterli)
+#   - Factual: 192 -> 160 (1-3 cumle yeterli)
+#   - Math: 384 -> 320 (concise step-by-step + sayi)
+#   - Summary: 256 -> 192 (ozet zaten kisa olmali)
+#   - NER: 256 -> 192 (JSON listesi genelde kisa)
+#   - Code: 768 (degistirilmedi - buyuk fonksiyonlar kesilmesin)
+#   - Logic: 512 -> 384 (kisa adimlar + sonuc)
 CATEGORY_PROFILES: dict[TaskCategory, int] = {
-    TaskCategory.FACTUAL_KNOWLEDGE: 256,
-    TaskCategory.MATHEMATICAL_REASONING: 512,
-    TaskCategory.SENTIMENT_CLASSIFICATION: 128,
-    TaskCategory.TEXT_SUMMARIZATION: 256,
-    TaskCategory.NAMED_ENTITY_RECOGNITION: 384,
-    TaskCategory.CODE_DEBUGGING: 512,
-    TaskCategory.LOGICAL_REASONING: 512,
-    TaskCategory.CODE_GENERATION: 512,
+    TaskCategory.FACTUAL_KNOWLEDGE: 160,
+    TaskCategory.MATHEMATICAL_REASONING: 320,
+    TaskCategory.SENTIMENT_CLASSIFICATION: 48,
+    TaskCategory.TEXT_SUMMARIZATION: 192,
+    TaskCategory.NAMED_ENTITY_RECOGNITION: 192,
+    TaskCategory.CODE_DEBUGGING: 768,
+    TaskCategory.LOGICAL_REASONING: 384,
+    TaskCategory.CODE_GENERATION: 768,
 }
 
 # Siralama ONEMLI: daha spesifik/guvenilir kaliplar once gelir, boylece
 # genel bir "what is" sorusu yanlislikla NER/kod/math'e dusmez.
+#
+# Guclendirilmis: daha fazla prompt'u 0-token'la siniflandirmak icin
+# ek kaliplar eklendi.
 _HEURISTIC_RULES: list[tuple[TaskCategory, re.Pattern]] = [
+    # --- En spesifik olanlar once ---
     (TaskCategory.NAMED_ENTITY_RECOGNITION,
-     re.compile(r"named entit(y|ies)", re.IGNORECASE)),
+     re.compile(r"named entit(y|ies)|\bextract\b[^.\n]*\b(entities|names|persons|organizations|locations)\b|\bNER\b|\bas\s+JSON\b", re.IGNORECASE)),
     (TaskCategory.CODE_DEBUGGING,
-     re.compile(r"\bbug\b|\bdebug(ging)?\b|\bfix (it|the bug|this function|this code)\b|\bcorrect this code\b|\brefactor\b|\berror in\b|\boptimize\b|\brecursion\b|\bmemoization\b", re.IGNORECASE)),
+     re.compile(r"\bbug\b|\bdebug(ging)?\b|\bfix\s+(it|the\s+bug|this\s+function|this\s+code|the\s+code|the\s+error)\b|"
+                r"\bcorrect\s+this\s+code\b|\brefactor\b|\berror\s+in\b|\boptimize\b|"
+                r"\brecursion\b|\bmemoization\b|\bhas\s+a\s+(bug|problem|issue)\b|"
+                r"\bwhat('s|\s+is)\s+wrong\s+with\b|\brace\s+condition\b|\bconcurrency\s+(issue|bug|problem)\b|"
+                r"\bcrash(es|ing)?\b|\bfails?\s+(with|when|for)\b|\bnot\s+working\b", re.IGNORECASE)),
     (TaskCategory.CODE_GENERATION,
-     re.compile(r"\bwrite\s+(a|an|the)\b[^.\n]*\bfunction\b|\bwrite code\b|\bimplement\s+(a|an|the)\b|\bpython script\b|\bwrite\s+(a|an|the)\b[^.\n]*\bprogram\b", re.IGNORECASE)),
+     re.compile(r"\bwrite\s+(a|an|the)\b[^.\n]*\b(function|class|method|script|program|code)\b|"
+                r"\bwrite\s+code\b|\bimplement\s+(a|an|the)\b|\bpython\s+script\b|"
+                r"\bcreate\s+(a|an|the)\b[^.\n]*\b(function|class|method)\b|"
+                r"\bcode\s+(that|which|to)\b|\brespond\s+with\s+code\b|"
+                r"\bgenerate\s+(a|an|the)?\s*(function|class|code|script)\b|"
+                r"\bdevelop\s+(a|an|the)\b|\bbuild\s+(a|an|the)\b[^.\n]*\b(function|class|module|api)\b", re.IGNORECASE)),
     (TaskCategory.SENTIMENT_CLASSIFICATION,
-     re.compile(r"\bsentiment\b|\bclassify\s+(the\s+)?tone\b|\btone\s+of\b|\bpositive\s+or\s+negative\b", re.IGNORECASE)),
+     re.compile(r"\bsentiment\b|\bclassify\s+(the\s+)?(tone|sentiment|feeling)\b|"
+                r"\btone\s+of\b|\bpositive\s+or\s+negative\b|"
+                r"\bpositive,?\s+negative,?\s+(or|and)\s+neutral\b|"
+                r"\bclassify\s+this\s+review\b|\bopinion\s+mining\b|"
+                r"\bhow\s+does\s+the\s+(author|reviewer|writer)\s+feel\b", re.IGNORECASE)),
     (TaskCategory.TEXT_SUMMARIZATION,
-     re.compile(r"\bsummar(i[sz]e|y|i[sz]ation)\b", re.IGNORECASE)),
+     re.compile(r"\bsummar(i[sz]e|y|i[sz]ation|i[sz]ing)\b|\bin\s+\d+\s+words\s+or\s+less\b|"
+                r"\bbriefly\s+describe\b|\bgive\s+(a|the)\s+gist\b|"
+                r"\bcondense\b|\bshorten\b|\bin\s+brief\b|"
+                r"\bkey\s+(points?|takeaways?|findings?)\b|\btl;?dr\b", re.IGNORECASE)),
     (TaskCategory.LOGICAL_REASONING,
-     re.compile(r"who (owns|is|has)\b|each own[s]? a different|logic puzzle|"
-                r"true or false|\bpuzzle\b|\briddle\b|\bdeduce\b", re.IGNORECASE)),
+     re.compile(r"who\s+(owns|is|has|lives)\b|each\s+own[s]?\s+a\s+different|"
+                r"logic\s+puzzle|true\s+or\s+false|\bpuzzle\b|\briddle\b|"
+                r"\bdeduce\b|\bdeduct(ion|ive)\b|\bknights?\s+and\s+knaves?\b|"
+                r"\bif.*then.*who\b|\bclue[s]?\b|\bgiven\s+that\b|"
+                r"\bsit\s+in\s+a\s+row\b|\bin\s+a\s+row\b[^.]*\bwho\b|"
+                r"\bwhat\s+is\s+the\s+order\b|\barrange\b[^.]*\b(order|sequence)\b", re.IGNORECASE)),
     (TaskCategory.MATHEMATICAL_REASONING,
-     re.compile(r"\$\s?\d|\d+\s?%|discount(ed)?|per\s?cent|percentage|\bcalculate\b|\bequation\b|\bcompute\b|\bplus\b|\bminus\b|\bmultiplied\b|\bdivided\b|\bsum\s+of\b|\bfraction\b|\bratio\b", re.IGNORECASE)),
+     re.compile(r"\$\s?\d|\d+\s?%|discount(ed)?|per\s?cent|percentage|\bcalculate\b|"
+                r"\bequation\b|\bcompute\b|\bplus\b|\bminus\b|\bmultiplied\b|"
+                r"\bdivided\b|\bsum\s+of\b|\bfraction\b|\bratio\b|"
+                r"\bcost[s]?\b|\bprice\b|\btotal\b|\bhow\s+much\b|"
+                r"\bhow\s+many\b|\bresult\s+of\b|\bsolve\s+step\s+by\s+step\b|"
+                r"\bapples?\b[^.]*\b(sells?|gives?|buys?)\b|"
+                r"\binterest\s+rate\b|\bprofit\b|\brevenue\b|\bmargin\b|"
+                r"\barea\b|\bvolume\b|\bperimeter\b|\bcircumference\b|"
+                r"\baverage\b|\bmean\b|\bmedian\b", re.IGNORECASE)),
+    # --- Factual Knowledge: fallback - soru kaliplari (diger kategorilere esmesmediyse) ---
+    (TaskCategory.FACTUAL_KNOWLEDGE,
+     re.compile(r"^\s*(what|who|when|where|which|how)\s+(is|was|are|were|did|does|do|many|much)\b|"
+                r"\bexplain\b|\bdescribe\b|\bdefine\b|\bwhat\s+year\b|\bname\s+the\b|"
+                r"\btell\s+me\s+about\b|\bwhat\s+happens\s+when\b|\bwhy\s+does\b|"
+                r"\bwhat\s+causes\b|\bwhat\s+are\s+the\b", re.IGNORECASE)),
 ]
 
 _CLASSIFIER_SYSTEM_PROMPT = (

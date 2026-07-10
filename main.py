@@ -1,7 +1,7 @@
 """
 main.py
 =======
-OptiRoute AI - Track 1 harness giris noktasi.
+Adaptive Model Dispatcher - Track 1 harness giris noktasi.
 
 PARTICIPANT GUIDE KONTRATI (birebir uygulanir):
   1. /input/tasks.json oku:
@@ -82,38 +82,44 @@ def write_results(path: str, results: list[dict[str, Any]]) -> None:
 
 def solve_all_tasks(
     tasks: list[dict], router: OptiRouter, deadline: float
-) -> list[dict[str, Any]]:
-    """Gorev listesini SIRAYLA cozer.
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Gorev listesini PARALEL olarak cozer (ThreadPoolExecutor).
 
     Zaman butcesi (deadline) asilirsa, kalan gorevlere YENI model cagrisi
     YAPILMAZ - hepsine bos cevap yazilir. Boylece:
-      (a) /output/results.json her zaman HER task_id icin bir giris icerir
-          (harness'in sonuclari task_id'ye gore eslestirdigini varsayarak,
-          eksik giris birakmak "o gorev icin cevap yok" riskinden daha
-          tehlikeli olabilir),
+      (a) /output/results.json her zaman HER task_id icin bir giris icerir,
       (b) 10 dakikalik sert sinira asla carpip sifir puanla sonuclanmayiz.
 
-    Tek bir gorevin (beklenmedik exception, izin verilmeyen model guard'i
-    vb.) patlamasi asla tum batch'i dusurmez - her gorev izole calisir.
-    """
-    results: list[dict[str, Any]] = []
-    total = len(tasks)
+    Paralel islem: max_workers kadar gorev ayni anda cozulur. Bu, ozellikle
+    Fireworks API cagrilarinin I/O-bagli oldugu durumlarda toplam sureyi
+    onemli olcude azaltir. Thread-safety: UsageTracker lock'lu, her gorev
+    izole try/except icerisinde.
 
-    for idx, task in enumerate(tasks, start=1):
+    Doner: (results, task_details) - results harness icin, task_details dashboard icin.
+    """
+    total = len(tasks)
+    max_workers = int(os.getenv("PARALLEL_WORKERS", "3"))
+
+    def _solve_single(idx: int, task: dict) -> tuple[dict[str, Any], dict[str, Any]]:
         task_id = task["task_id"]
         prompt = task["prompt"]
+        task_start = time.monotonic()
 
         if time.monotonic() >= deadline:
             logger.warning(
-                "Zaman butcesi doldu (%d/%d gorev islendi) - '%s' bos cevapla gecildi.",
-                idx - 1, total, task_id,
+                "Zaman butcesi doldu - '%s' bos cevapla gecildi.", task_id,
             )
-            results.append({"task_id": task_id, "answer": ""})
-            continue
+            detail = {
+                "task_id": task_id, "category": None, "source": "timeout",
+                "model_used": None, "tokens_spent": 0,
+                "latency_seconds": 0.0, "was_corrected": False,
+                "prompt_preview": prompt[:80],
+            }
+            return {"task_id": task_id, "answer": ""}, detail
 
         try:
             route_result = router.solve(prompt)
-            results.append({"task_id": task_id, "answer": route_result.text})
+            latency = time.monotonic() - task_start
             logger.info(
                 "[%d/%d] %s cozuldu: kaynak=%s kategori=%s model=%s token=%d duzeltildi=%s",
                 idx, total, task_id, route_result.source.value,
@@ -121,22 +127,132 @@ def solve_all_tasks(
                 route_result.model_used or "-", route_result.tokens_spent,
                 route_result.was_corrected,
             )
+            detail = {
+                "task_id": task_id,
+                "category": route_result.category.value if route_result.category else None,
+                "source": route_result.source.value,
+                "model_used": route_result.model_used,
+                "tokens_spent": route_result.tokens_spent,
+                "latency_seconds": round(latency, 3),
+                "was_corrected": route_result.was_corrected,
+                "prompt_preview": prompt[:80],
+            }
+            return {"task_id": task_id, "answer": route_result.text}, detail
         except DisallowedModelError:
-            # Guard'in kendisi asla tetiklenmemeli (config zaten engelliyor)
-            # ama tetiklenirse CRASH ETMEK yerine bos cevapla devam et -
-            # tek gorevin hatasi tum submission'i riske atmamali.
             logger.exception(
                 "[%d/%d] %s: izin verilmeyen model guard'i tetiklendi.", idx, total, task_id
             )
-            results.append({"task_id": task_id, "answer": ""})
+            detail = {
+                "task_id": task_id, "category": None, "source": "error_disallowed",
+                "model_used": None, "tokens_spent": 0,
+                "latency_seconds": round(time.monotonic() - task_start, 3),
+                "was_corrected": False, "prompt_preview": prompt[:80],
+            }
+            return {"task_id": task_id, "answer": ""}, detail
         except Exception:
             logger.exception(
                 "[%d/%d] %s cozulurken beklenmeyen hata olustu, bos cevap yazildi.",
                 idx, total, task_id,
             )
-            results.append({"task_id": task_id, "answer": ""})
+            detail = {
+                "task_id": task_id, "category": None, "source": "error",
+                "model_used": None, "tokens_spent": 0,
+                "latency_seconds": round(time.monotonic() - task_start, 3),
+                "was_corrected": False, "prompt_preview": prompt[:80],
+            }
+            return {"task_id": task_id, "answer": ""}, detail
 
-    return results
+    # Paralel calistirma: gorevler paralel cozulur, sirasi korunur
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    # task_id sirasini korumak icin index bazli sonuc toplama
+    results_by_idx: dict[int, dict[str, Any]] = {}
+    details_by_idx: dict[int, dict[str, Any]] = {}
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_idx = {
+            executor.submit(_solve_single, idx, task): idx
+            for idx, task in enumerate(tasks, start=1)
+        }
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            try:
+                result, detail = future.result()
+                results_by_idx[idx] = result
+                details_by_idx[idx] = detail
+            except Exception:
+                # Bu noktaya asla gelmemeli (_solve_single her seyi yakaliyor)
+                # ama guvenlik icin:
+                task_id = tasks[idx - 1]["task_id"]
+                logger.exception(
+                    "[%d/%d] %s: future'dan beklenmeyen hata.", idx, total, task_id
+                )
+                results_by_idx[idx] = {"task_id": task_id, "answer": ""}
+                details_by_idx[idx] = {
+                    "task_id": task_id, "category": None, "source": "error_future",
+                    "model_used": None, "tokens_spent": 0,
+                    "latency_seconds": 0.0, "was_corrected": False,
+                    "prompt_preview": tasks[idx - 1]["prompt"][:80],
+                }
+
+    # Sirali sonuc listesi olustur (task_id sirasina gore)
+    results = [results_by_idx[i] for i in range(1, total + 1)]
+    details = [details_by_idx[i] for i in range(1, total + 1)]
+    return results, details
+
+
+
+def generate_run_report(
+    task_details: list[dict[str, Any]],
+    usage_tracker,
+    total_duration: float,
+) -> dict[str, Any]:
+    """Dashboard icin detayli calisma raporu olusturur."""
+    from datetime import datetime, timezone
+
+    # Model bazinda kullanim istatistikleri
+    model_usage: dict[str, dict[str, int]] = {}
+    for detail in task_details:
+        model = detail.get("model_used") or "none"
+        if model not in model_usage:
+            model_usage[model] = {"calls": 0, "tokens": 0}
+        model_usage[model]["calls"] += 1
+        model_usage[model]["tokens"] += detail.get("tokens_spent", 0)
+
+    # Kategori bazinda istatistikler
+    category_stats: dict[str, dict[str, Any]] = {}
+    for detail in task_details:
+        cat = detail.get("category") or "unknown"
+        if cat not in category_stats:
+            category_stats[cat] = {"count": 0, "total_tokens": 0, "avg_latency": 0.0, "latencies": []}
+        category_stats[cat]["count"] += 1
+        category_stats[cat]["total_tokens"] += detail.get("tokens_spent", 0)
+        category_stats[cat]["latencies"].append(detail.get("latency_seconds", 0.0))
+
+    # Ortalama latency hesapla ve gecici listeyi temizle
+    for cat, stats in category_stats.items():
+        lats = stats.pop("latencies")
+        stats["avg_latency"] = round(sum(lats) / len(lats), 3) if lats else 0.0
+
+    total_tokens = sum(d.get("tokens_spent", 0) for d in task_details)
+    corrected_count = sum(1 for d in task_details if d.get("was_corrected"))
+
+    return {
+        "run_id": datetime.now(timezone.utc).isoformat(),
+        "total_tasks": len(task_details),
+        "total_tokens": total_tokens,
+        "total_duration_seconds": round(total_duration, 2),
+        "corrected_count": corrected_count,
+        "tasks": task_details,
+        "model_usage": model_usage,
+        "category_stats": category_stats,
+        "usage_tracker": {
+            "call_count": usage_tracker.call_count,
+            "prompt_tokens": usage_tracker.prompt_tokens,
+            "completion_tokens": usage_tracker.completion_tokens,
+            "total_tokens": usage_tracker.total_tokens,
+        },
+    }
 
 
 def main() -> int:
@@ -180,7 +296,7 @@ def main() -> int:
         client = FireworksClient(settings)
     router = OptiRouter(client, settings)
 
-    results = solve_all_tasks(tasks, router, deadline)
+    results, task_details = solve_all_tasks(tasks, router, deadline)
 
     try:
         write_results(settings.results_output_path, results)
@@ -195,8 +311,23 @@ def main() -> int:
     )
     logger.info("--- Kumulatif Kullanim Raporu ---\n%s", client.usage.report())
 
+    # Dashboard icin run_report.json yaz (results.json ile ayni dizine)
+    try:
+        report = generate_run_report(task_details, client.usage, elapsed)
+        report_path = settings.results_output_path.replace("results.json", "run_report.json")
+        if report_path == settings.results_output_path:
+            # Yol degismemisse (orn. custom dosya adi) yanina yaz
+            report_path = settings.results_output_path + ".report.json"
+        write_results(report_path, report)
+        logger.info("Run report yazildi: %s", report_path)
+    except Exception:
+        # Rapor yazimi basarisiz olsa bile results.json zaten yazildi,
+        # skor etkilenmez - sadece dashboard verisi eksik kalir.
+        logger.warning("Run report yazilamadi (skor etkilenmez).", exc_info=True)
+
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
+

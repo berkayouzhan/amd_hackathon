@@ -18,6 +18,7 @@ buradan gecen her cagriya gore yapiliyor. Bu yuzden:
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Optional
@@ -63,30 +64,36 @@ class UsageTracker:
     kendi çalışması sırasında bunu görebilmesi (ör. bir görev için heavy
     modele geçmeden önce 'bu göreve şimdiye kadar ne kadar harcadık' diye
     sorabilmesi) ileride bütçe-farkında (budget-aware) kararlar almamızı
-    sağlayacak temel."""
+    sağlayacak temel.
+
+    Thread-safe: paralel gorev islemede birden fazla thread ayni anda
+    record() cagirabilir."""
 
     call_count: int = 0
     prompt_tokens: int = 0
     completion_tokens: int = 0
     total_tokens: int = 0
     calls_by_model: dict = field(default_factory=dict)
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     def record(self, result: CompletionResult) -> None:
-        self.call_count += 1
-        self.prompt_tokens += result.prompt_tokens
-        self.completion_tokens += result.completion_tokens
-        self.total_tokens += result.total_tokens
-        self.calls_by_model[result.model] = self.calls_by_model.get(result.model, 0) + 1
+        with self._lock:
+            self.call_count += 1
+            self.prompt_tokens += result.prompt_tokens
+            self.completion_tokens += result.completion_tokens
+            self.total_tokens += result.total_tokens
+            self.calls_by_model[result.model] = self.calls_by_model.get(result.model, 0) + 1
 
     def report(self) -> str:
-        lines = [
-            f"Toplam cagri        : {self.call_count}",
-            f"Toplam prompt token  : {self.prompt_tokens}",
-            f"Toplam completion tok: {self.completion_tokens}",
-            f"Toplam token (score) : {self.total_tokens}",
-            f"Model basina cagri   : {self.calls_by_model}",
-        ]
-        return "\n".join(lines)
+        with self._lock:
+            lines = [
+                f"Toplam cagri        : {self.call_count}",
+                f"Toplam prompt token  : {self.prompt_tokens}",
+                f"Toplam completion tok: {self.completion_tokens}",
+                f"Toplam token (score) : {self.total_tokens}",
+                f"Model basina cagri   : {self.calls_by_model}",
+            ]
+            return "\n".join(lines)
 
 
 _RETRYABLE_EXCEPTIONS = (APIConnectionError, APITimeoutError, RateLimitError)

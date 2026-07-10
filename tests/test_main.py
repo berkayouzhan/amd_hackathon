@@ -98,10 +98,13 @@ class TestSolveAllTasks:
         ]
         deadline = time.monotonic() + 300  # bol zaman
 
-        results = solve_all_tasks(tasks, mock_router, deadline)
+        results, details = solve_all_tasks(tasks, mock_router, deadline)
         assert len(results) == 2
         assert results[0]["task_id"] == "t1"
         assert results[0]["answer"] == "answer"
+        # Dashboard details check
+        assert len(details) == 2
+        assert details[0]["category"] == "factual_knowledge"
 
     def test_deadline_fills_empty_answers(self):
         """Deadline gectiyse kalan gorevler bos cevapla doldurulmali."""
@@ -112,11 +115,13 @@ class TestSolveAllTasks:
         ]
         deadline = time.monotonic() - 1  # ZATEN gecmis
 
-        results = solve_all_tasks(tasks, mock_router, deadline)
+        results, details = solve_all_tasks(tasks, mock_router, deadline)
         assert len(results) == 2
         assert results[0]["answer"] == ""
         assert results[1]["answer"] == ""
         mock_router.solve.assert_not_called()
+        # Details should indicate timeout
+        assert details[0]["source"] == "timeout"
 
     def test_exception_isolated_per_task(self):
         """Bir gorev patlasa bile digerleri etkilenmemeli."""
@@ -144,7 +149,9 @@ class TestSolveAllTasks:
         ]
         deadline = time.monotonic() + 300
 
-        results = solve_all_tasks(tasks, mock_router, deadline)
+        results, details = solve_all_tasks(tasks, mock_router, deadline)
         assert len(results) == 2
         assert results[0]["answer"] == ""  # crash olan gorev bos cevap
         assert results[1]["answer"] == "ok"  # digeri basarili
+        # Detail for crashed task should show error
+        assert details[0]["source"] == "error"

@@ -1,0 +1,62 @@
+[
+  {
+    "task_id": "ch1_math_word_tricky",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'If a farmer has 120 apples and sells 1/3 of them to Alice, t...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch2_math_bypass_tier0",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'Calculate the result of: 15.5 * (40 / (2.5 + 1.5)) - 100...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch3_logic_einstein_mini",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'That answer looks invalid or incomplete for this task. Pleas...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch4_logic_liar_paradox",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'That answer looks invalid or incomplete for this task. Pleas...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch5_code_debug_concurrency",
+    "answer": "def solution():\n    # SAHTE (fake) cevap - gercek model degil\n    return 42"
+  },
+  {
+    "task_id": "ch6_code_gen_algorithm",
+    "answer": "def solution():\n    # SAHTE (fake) cevap - gercek model degil\n    return 42"
+  },
+  {
+    "task_id": "ch7_ner_empty_case",
+    "answer": "[{\"text\": \"Extract\", \"type\": \"unknown\"}, {\"text\": \"JSON\", \"type\": \"unknown\"}, {\"text\": \"The\", \"type\": \"unknown\"}, {\"text\": \"Oceans\", \"type\": \"unknown\"}, {\"text\": \"If\", \"type\": \"unknown\"}]"
+  },
+  {
+    "task_id": "ch8_ner_heavy_overlap",
+    "answer": "[{\"text\": \"Extract\", \"type\": \"unknown\"}, {\"text\": \"Apple\", \"type\": \"unknown\"}, {\"text\": \"Inc\", \"type\": \"unknown\"}, {\"text\": \"CEO\", \"type\": \"unknown\"}, {\"text\": \"Tim\", \"type\": \"unknown\"}]"
+  },
+  {
+    "task_id": "ch9_sentiment_ambiguous",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'That answer looks invalid or incomplete for this task. Pleas...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch10_summarize_nested",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'Summarize the key findings of this text in 15 words or less:...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch11_compressor_stress",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'This is a stress test for whitespace compression.\n\nPreserve ...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch12_math_huge_numbers",
+    "answer": "121932631112635264"
+  },
+  {
+    "task_id": "ch13_logic_grid",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'That answer looks invalid or incomplete for this task. Pleas...' istegine sahte bir cevaptir."
+  },
+  {
+    "task_id": "ch14_code_debug_recursion",
+    "answer": "def solution():\n    # SAHTE (fake) cevap - gercek model degil\n    return 42"
+  },
+  {
+    "task_id": "ch15_factual_obscure",
+    "answer": "[FAKE ANSWER - offline test modu] Bu, 'In what year was the Treaty of Westphalia signed, and which ...' istegine sahte bir cevaptir."
+  }
+]

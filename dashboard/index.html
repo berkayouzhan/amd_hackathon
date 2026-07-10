@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Model Dispatcher — Intelligent AI Task Routing</title>
+    <meta name="description" content="Token-efficient AI routing agent that intelligently dispatches tasks across multiple models for optimal accuracy and minimal cost.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ============================================================
+         SECTION 1: HERO / PRESENTATION
+         ============================================================ -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+            <div class="hero-grid"></div>
+            <div class="hero-orbs">
+                <div class="orb orb-1"></div>
+                <div class="orb orb-2"></div>
+                <div class="orb orb-3"></div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="nav">
+            <div class="nav-logo">
+                <img src="logo.png" alt="AMD Logo" class="nav-logo-img">
+                <span>Adaptive Model Dispatcher</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#architecture">Architecture</a>
+                <a href="#dashboard">Dashboard</a>
+                <a href="https://github.com/berkayouzhan/amd_hackathon" class="nav-btn" target="_blank">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    GitHub
+                </a>
+            </div>
+        </nav>
+
+        <!-- Hero Container -->
+        <div class="hero-container section-container">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    AMD Developer Hackathon: ACT II — Track 1
+                </div>
+                <h1 class="hero-title">
+                    <span class="hero-title-line">Adaptive Model</span>
+                    <span class="hero-title-line hero-title-gradient">Dispatcher</span>
+                </h1>
+                <p class="hero-subtitle">
+                    A token-efficient AI routing agent that intelligently dispatches diverse tasks 
+                    across multiple models — maximizing accuracy while minimizing cost.
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">8</span>
+                        <span class="hero-stat-label">Task Categories</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">5</span>
+                        <span class="hero-stat-label">Pipeline Layers</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">0</span>
+                        <span class="hero-stat-label">Token Tier-0 Cost</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">3+</span>
+                        <span class="hero-stat-label">AI Models</span>
+                    </div>
+                </div>
+                <div class="hero-actions">
+                    <a href="#dashboard" class="btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        View Dashboard
+                    </a>
+                    <a href="#architecture" class="btn-secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                        How It Works
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-mockup">
+                    <div class="mockup-header">
+                        <div class="mockup-dots">
+                            <span class="mockup-dot red"></span>
+                            <span class="mockup-dot yellow"></span>
+                            <span class="mockup-dot green"></span>
+                        </div>
+                        <div class="mockup-title">AMD Orcherstration Architecture</div>
+                    </div>
+                    <img src="banner.png" alt="Adaptive Model Dispatcher Architecture" class="mockup-img">
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-scroll-indicator">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 2: INTERACTIVE PRESENTATION DECK
+         ============================================================ -->
+    <section class="presentation-section" id="architecture">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-tag">Interactive Pitch</span>
+                <h2 class="section-title">Project Presentation</h2>
+                <p class="section-desc">Click through the tabs below to explore how we optimized accuracy and token usage for the AMD Hackathon.</p>
+            </div>
+
+            <div class="deck-container">
+                <!-- Slide Selectors (Left Panel) -->
+                <div class="deck-tabs">
+                    <button class="deck-tab active" onclick="switchSlide(0)">
+                        <span class="deck-tab-num">01</span>
+                        <div class="deck-tab-text">
+                            <h4>Executive Summary</h4>
+                            <p>Challenge & Strategy</p>
+                        </div>
+                    </button>
+                    <button class="deck-tab" onclick="switchSlide(1)">
+                        <span class="deck-tab-num">02</span>
+                        <div class="deck-tab-text">
+                            <h4>5-Layer Pipeline</h4>
+                            <p>Orchestration Flow</p>
+                        </div>
+                    </button>
+                    <button class="deck-tab" onclick="switchSlide(2)">
+                        <span class="deck-tab-num">03</span>
+                        <div class="deck-tab-text">
+                            <h4>Tier 0 Engine</h4>
+                            <p>0-Token Operations</p>
+                        </div>
+                    </button>
+                    <button class="deck-tab" onclick="switchSlide(3)">
+                        <span class="deck-tab-num">04</span>
+                        <div class="deck-tab-text">
+                            <h4>Adaptive Routing</h4>
+                            <p>Model Distribution</p>
+                        </div>
+                    </button>
+                    <button class="deck-tab" onclick="switchSlide(4)">
+                        <span class="deck-tab-num">05</span>
+                        <div class="deck-tab-text">
+                            <h4>Validation Guard</h4>
+                            <p>Corrective Retry Loop</p>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Slide Contents (Right Panel) -->
+                <div class="deck-content">
+                    <!-- Slide 1: Executive Summary -->
+                    <div class="deck-slide active">
+                        <div class="slide-header">
+                            <span class="slide-badge">Summary</span>
+                            <h3>Challenge Overview & Dispatcher Strategy</h3>
+                        </div>
+                        <div class="slide-body">
+                            <p class="slide-lead">
+                                The AMD Developer Hackathon (Track 1) evaluates agents based on <strong>Accuracy Gate</strong> first, and then sorts the passing entries by <strong>Total Token Consumption</strong> (lower is better).
+                            </p>
+                            <div class="slide-grid-2">
+                                <div class="slide-card border-amber">
+                                    <div class="slide-card-icon">🎯</div>
+                                    <h4>The Accuracy Gate Challenge</h4>
+                                    <p>Missing or failing the LLM-Judge's accuracy threshold means immediate disqualification from the leaderboard. High accuracy is non-negotiable.</p>
+                                </div>
+                                <div class="slide-card border-indigo">
+                                    <div class="slide-card-icon">⚡</div>
+                                    <h4>Token Optimization Strategy</h4>
+                                    <p>Instead of sending raw prompts directly to expensive models, we compress, solve deterministically, and direct queries to specialized models.</p>
+                                </div>
+                            </div>
+                            <div class="slide-highlight">
+                                <strong>Key Breakthrough:</strong> We achieved near-zero token usage on math, unit conversions, and classification, routing only complex reasoning and coding tasks to premium Fireworks APIs.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 2: Pipeline -->
+                    <div class="deck-slide">
+                        <div class="slide-header">
+                            <span class="slide-badge">Architecture</span>
+                            <h3>5-Layer Sequential Processing Pipeline</h3>
+                        </div>
+                        <div class="slide-body">
+                            <div class="slide-pipeline-steps">
+                                <div class="slide-step-row">
+                                    <span class="slide-step-badge">1. Compression</span>
+                                    <p>Compresses repeated spaces, blank lines, and URLs. Decreases prompt token count by up to <strong>15%</strong> while preserving code indentation.</p>
+                                </div>
+                                <div class="slide-step-row">
+                                    <span class="slide-step-badge">2. Tier-0 Deterministic</span>
+                                    <p>Intercepts tasks and solves simple arithmetic, percentages, powers, and unit conversions natively in Python at <strong>0 token cost</strong>.</p>
+                                </div>
+                                <div class="slide-step-row">
+                                    <span class="slide-step-badge">3. Triage & Classify</span>
+                                    <p>Two-tier classifier analyzes prompt. Fast-path regex rules run first (0 tokens). Lightweight LLM classifies complex cases (~100 tokens).</p>
+                                </div>
+                                <div class="slide-step-row">
+                                    <span class="slide-step-badge">4. Model Dispatch</span>
+                                    <p>Selects the most cost-efficient allowed model on Fireworks AI for the task category. Uses local Qwen 2.5 inside the Docker container to bypass API calls.</p>
+                                </div>
+                                <div class="slide-step-row">
+                                    <span class="slide-step-badge">5. Validation & Clean</span>
+                                    <p>Validates the response structure (free local check). If validation fails, triggers corrective retry. Cleans code fences and intro preambles.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 3: Tier 0 Engine -->
+                    <div class="deck-slide">
+                        <div class="slide-header">
+                            <span class="slide-badge">Tier 0</span>
+                            <h3>Deterministic Python Solver (0 Tokens)</h3>
+                        </div>
+                        <div class="slide-body">
+                            <p class="slide-lead">Sending simple math, percentage, and conversion questions to LLMs wastes tokens and risks arithmetic errors. We solve these natively with 100% accuracy and zero token cost.</p>
+                            
+                            <div class="slide-grid-3">
+                                <div class="solver-box">
+                                    <div class="solver-box-head">🔢 Arithmetic</div>
+                                    <p>Evaluates complex equations using a safe Abstract Syntax Tree (AST) parser.</p>
+                                    <code>"15.5 * (40 / (2.5 + 1.5)) - 100"</code>
+                                </div>
+                                <div class="solver-box">
+                                    <div class="solver-box-head">🏷️ Percentages</div>
+                                    <p>Processes sales discounts, interest rates, and percentage margins.</p>
+                                    <code>"What is 15% of 200?"</code>
+                                </div>
+                                <div class="solver-box">
+                                    <div class="solver-box-head">⚖️ Unit Conversion</div>
+                                    <p>Converts lengths, weights, currencies, and time intervals dynamically.</p>
+                                    <code>"How many cm in 5 meters?"</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 4: Adaptive Routing -->
+                    <div class="deck-slide">
+                        <div class="slide-header">
+                            <span class="slide-badge">Routing</span>
+                            <h3>Adaptive Model Routing & Gemma Circuit-Breaker</h3>
+                        </div>
+                        <div class="slide-body">
+                            <p class="slide-lead">We dispatch each category to a custom model role to balance quality, pricing, and bonus payouts.</p>
+                            
+                            <div class="slide-grid-2">
+                                <div class="model-desc-card">
+                                    <div class="model-desc-header">
+                                        <span class="model-dot-indigo"></span>
+                                        <strong>MiniMax M3 & Kimi K2.7 Code</strong>
+                                    </div>
+                                    <p>MiniMax M3 is assigned as the default and reasoning model (high general accuracy). Kimi K2.7 Code handles code generation and debugging tasks, ensuring syntactic correctness.</p>
+                                </div>
+                                <div class="model-desc-card">
+                                    <div class="model-desc-header">
+                                        <span class="model-dot-pink"></span>
+                                        <strong>Google Gemma 4 & Circuit Breaker</strong>
+                                    </div>
+                                    <p>To qualify for the Gemma bonus prize, we attempt Gemma 4 first. However, since serverless Gemma isn't guaranteed on Fireworks, we implement a circuit-breaker: if a Gemma call fails or times out once, the dispatcher dynamically bypasses Gemma for the rest of the batch to save time.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 5: Validation Guard -->
+                    <div class="deck-slide">
+                        <div class="slide-header">
+                            <span class="slide-badge">Accuracy Guard</span>
+                            <h3>Speculative Validation & Corrective Retries</h3>
+                        </div>
+                        <div class="slide-body">
+                            <p class="slide-lead">To guarantee we pass the Accuracy Gate, the output of every model call is inspected by local validation rules before finalizing results.</p>
+                            
+                            <div class="validation-flow">
+                                <div class="v-step">
+                                    <span class="v-icon red">❌</span>
+                                    <h4>Inspection</h4>
+                                    <p>Checks for refusals ("I am sorry", "As an AI"), empty strings, truncated code, or invalid JSON arrays (NER).</p>
+                                </div>
+                                <div class="v-arrow">→</div>
+                                <div class="v-step">
+                                    <span class="v-icon orange">🔄</span>
+                                    <h4>Corrective Retry</h4>
+                                    <p>If validation fails, a second speculative attempt is dispatched with a lower temperature and stricter formatting prompt.</p>
+                                </div>
+                                <div class="v-arrow">→</div>
+                                <div class="v-step">
+                                    <span class="v-icon green">✓</span>
+                                    <h4>Output Clean</h4>
+                                    <p>Strips conversational headers ("Sure!", "Here is...") and markdown fences to deliver exact answers to the LLM-Judge.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Grid -->
+            <div class="categories-section">
+                <h3 class="categories-title">8 Supported Task Categories</h3>
+                <div class="categories-grid">
+                    <div class="category-chip cat-factual">
+                        <span class="cat-emoji">📚</span> Factual Knowledge
+                    </div>
+                    <div class="category-chip cat-math">
+                        <span class="cat-emoji">🔢</span> Mathematical Reasoning
+                    </div>
+                    <div class="category-chip cat-sentiment">
+                        <span class="cat-emoji">💬</span> Sentiment Classification
+                    </div>
+                    <div class="category-chip cat-summary">
+                        <span class="cat-emoji">📝</span> Text Summarization
+                    </div>
+                    <div class="category-chip cat-ner">
+                        <span class="cat-emoji">🏷️</span> Named Entity Recognition
+                    </div>
+                    <div class="category-chip cat-debug">
+                        <span class="cat-emoji">🐛</span> Code Debugging
+                    </div>
+                    <div class="category-chip cat-logic">
+                        <span class="cat-emoji">🧩</span> Logical Reasoning
+                    </div>
+                    <div class="category-chip cat-codegen">
+                        <span class="cat-emoji">💻</span> Code Generation
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tech Stack -->
+            <div class="tech-stack">
+                <h3 class="categories-title">Technology Stack</h3>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <div class="tech-logo">🐍</div>
+                        <span>Python 3.11</span>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-logo">🔥</div>
+                        <span>Fireworks AI</span>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-logo">🐳</div>
+                        <span>Docker</span>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-logo">🧪</div>
+                        <span>133 Tests</span>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-logo">📊</div>
+                        <span>Chart.js</span>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-logo">🤖</div>
+                        <span>MiniMax M3</span>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-logo">💎</div>
+                        <span>Kimi K2P7</span>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-logo">✨</div>
+                        <span>Gemma 4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 4: MONITORING DASHBOARD
+         ============================================================ -->
+    <section class="dashboard-section" id="dashboard">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-tag">Live Data</span>
+                <h2 class="section-title">Monitoring Dashboard</h2>
+                <p class="section-desc">Real-time visualization of routing decisions, token usage, and pipeline performance.</p>
+            </div>
+
+            <!-- Dashboard Controls -->
+            <div class="dash-controls">
+                <div class="status-badge" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Loading...</span>
+                </div>
+                <button class="btn-load" id="btnLoad" onclick="loadReport()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/><path d="M21 3v5h-5"/></svg>
+                    Reload Data
+                </button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="cards-grid" id="summaryCards">
+                <div class="card card-accent-1">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-label">Tasks Processed</span>
+                        <span class="card-value" id="totalTasks">—</span>
+                    </div>
+                </div>
+                <div class="card card-accent-2">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-label">Total Duration</span>
+                        <span class="card-value" id="totalDuration">—</span>
+                    </div>
+                </div>
+                <div class="card card-accent-3">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-label">Total Tokens</span>
+                        <span class="card-value" id="totalTokens">—</span>
+                    </div>
+                </div>
+                <div class="card card-accent-4">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-label">Corrective Retries</span>
+                        <span class="card-value" id="correctedCount">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-main-row">
+                <div class="chart-card">
+                    <h3 class="chart-title">Model Token Usage & API Calls</h3>
+                    <div class="chart-container-large">
+                        <canvas id="modelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="charts-sub-grid">
+                <div class="chart-card">
+                    <h3 class="chart-title">Category Distribution</h3>
+                    <div class="chart-container-small">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Routing Sources</h3>
+                    <div class="chart-container-small">
+                        <canvas id="sourceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Table -->
+            <div class="chart-card full-width">
+                <h3 class="chart-title">Task Details</h3>
+                <div class="table-wrapper">
+                    <table class="task-table" id="taskTable">
+                        <thead>
+                            <tr>
+                                <th>Task ID</th>
+                                <th>Category</th>
+                                <th>Source</th>
+                                <th>Model</th>
+                                <th>Tokens</th>
+                                <th>Latency</th>
+                                <th>Corrected</th>
+                                <th>Prompt Preview</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskTableBody">
+                            <tr><td colspan="8" class="empty-state">No data loaded. Click "Reload Data" or drop a run_report.json file here.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <svg class="footer-logo" viewBox="0 0 40 40" fill="none">
+                    <circle cx="20" cy="20" r="18" stroke="url(#footGrad)" stroke-width="2" fill="none"/>
+                    <path d="M12 20 L17 14 L23 22 L28 16" stroke="url(#footGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <circle cx="17" cy="14" r="2" fill="#6366f1"/>
+                    <circle cx="23" cy="22" r="2" fill="#8b5cf6"/>
+                    <circle cx="28" cy="16" r="2" fill="#a78bfa"/>
+                    <defs>
+                        <linearGradient id="footGrad" x1="0" y1="0" x2="40" y2="40">
+                            <stop offset="0%" stop-color="#6366f1"/>
+                            <stop offset="100%" stop-color="#a78bfa"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div>
+                    <strong>Adaptive Model Dispatcher</strong>
+                    <span>AMD Developer Hackathon: ACT II • Track 1</span>
+                </div>
+            </div>
+            <div class="footer-tech">
+                Built with Fireworks AI • MiniMax M3 • Kimi K2P7 • Gemma 4
+            </div>
+        </div>
+    </footer>
+
+    <!-- Drop overlay -->
+    <div class="drop-overlay" id="dropOverlay">
+        <div class="drop-content">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p>Drop <code>run_report.json</code> here</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# OptiRoute AI - Track 1: General-Purpose AI Agent
+# Adaptive Model Dispatcher - Track 1: General-Purpose AI Agent
 #
 # ONEMLI (build zamaninda): Judging VM linux/amd64 calisiyor. Apple Silicon
 # (M1/M2/M3) uzerinde build ediyorsan MUTLAKA su komutu kullan, yoksa image
@@ -9,27 +9,38 @@
 # Intel/AMD makinede veya GitHub Actions'ta standart 'docker build' zaten
 # linux/amd64 uretir, ekstra bir sey gerekmez.
 
-FROM python:3.11-slim
+# === STAGE 1: Builder ===
+FROM python:3.11-slim AS builder
 
-# Derleme araclari ve curl kurulumu
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /build
 
 # Yerel model dosyasini HuggingFace uzerinden indir (1.1GB)
-RUN curl -L -o /app/qwen2.5-1.5b-instruct-q4_k_m.gguf https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
+# Ayri bir katman olarak: sadece model URL degisirse tekrar indirilir
+RUN curl -L -o /build/qwen2.5-1.5b-instruct-q4_k_m.gguf \
+    https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf
 
-# Once sadece requirements'i kopyala -> cache verimliligi icin
+# Python bagimliliklerini kur (build-essential ile derleme gerekebilir)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# Derleme bittikten sonra imaj boyutunu optimize etmek icin build tools'lari kaldirabiliriz
-RUN apt-get purge -y --auto-remove build-essential && rm -rf /var/lib/apt/lists/*
+# === STAGE 2: Runtime ===
+FROM python:3.11-slim
 
+WORKDIR /app
+
+# Builder'dan kurulan Python paketlerini kopyala
+COPY --from=builder /install /usr/local
+
+# Builder'dan indirilen model dosyasini kopyala
+COPY --from=builder /build/qwen2.5-1.5b-instruct-q4_k_m.gguf /app/qwen2.5-1.5b-instruct-q4_k_m.gguf
+
+# Uygulama dosyalarini kopyala
 COPY . .
 
 ENV PYTHONUNBUFFERED=1 \
@@ -49,3 +60,4 @@ ENV PYTHONUNBUFFERED=1 \
 RUN mkdir -p /input /output
 
 ENTRYPOINT ["python", "main.py"]
+

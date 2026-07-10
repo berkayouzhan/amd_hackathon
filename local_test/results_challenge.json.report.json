@@ -1,0 +1,226 @@
+{
+  "run_id": "2026-07-10T09:46:58.488576+00:00",
+  "total_tasks": 15,
+  "total_tokens": 2789,
+  "total_duration_seconds": 0.0,
+  "corrected_count": 4,
+  "tasks": [
+    {
+      "task_id": "ch1_math_word_tricky",
+      "category": "mathematical_reasoning",
+      "source": "reasoning_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 158,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "If a farmer has 120 apples and sells 1/3 of them to Alice, then Alice gives 25% "
+    },
+    {
+      "task_id": "ch2_math_bypass_tier0",
+      "category": "mathematical_reasoning",
+      "source": "reasoning_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 119,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "Calculate the result of: 15.5 * (40 / (2.5 + 1.5)) - 100"
+    },
+    {
+      "task_id": "ch3_logic_einstein_mini",
+      "category": "logical_reasoning",
+      "source": "reasoning_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 261,
+      "latency_seconds": 0.0,
+      "was_corrected": true,
+      "prompt_preview": "Four people (A, B, C, D) sit in a row. A is next to B but not next to C. C is ne"
+    },
+    {
+      "task_id": "ch4_logic_liar_paradox",
+      "category": "logical_reasoning",
+      "source": "reasoning_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 263,
+      "latency_seconds": 0.0,
+      "was_corrected": true,
+      "prompt_preview": "Knights always tell the truth, and Knaves always lie. Person X says 'Either I am"
+    },
+    {
+      "task_id": "ch5_code_debug_concurrency",
+      "category": "code_debugging",
+      "source": "code_model",
+      "model_used": "accounts/fireworks/models/kimi-k2p7-code",
+      "tokens_spent": 180,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "This Python code tries to fetch URLs concurrently but has a race condition or pe"
+    },
+    {
+      "task_id": "ch6_code_gen_algorithm",
+      "category": "code_generation",
+      "source": "code_model",
+      "model_used": "accounts/fireworks/models/kimi-k2p7-code",
+      "tokens_spent": 125,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "Write a Python function `lru_cache_custom(capacity: int)` that implements a simp"
+    },
+    {
+      "task_id": "ch7_ner_empty_case",
+      "category": "named_entity_recognition",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 178,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "Extract all named entities (person, organization, location) as JSON from this te"
+    },
+    {
+      "task_id": "ch8_ner_heavy_overlap",
+      "category": "named_entity_recognition",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 162,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "Extract entities from: 'Apple Inc. CEO Tim Cook met with Google LLC representati"
+    },
+    {
+      "task_id": "ch9_sentiment_ambiguous",
+      "category": "sentiment_classification",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 299,
+      "latency_seconds": 0.0,
+      "was_corrected": true,
+      "prompt_preview": "Classify the sentiment of this review and justify it: 'The film was technically "
+    },
+    {
+      "task_id": "ch10_summarize_nested",
+      "category": "text_summarization",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 217,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "Summarize the key findings of this text in 15 words or less: 'Research indicates"
+    },
+    {
+      "task_id": "ch11_compressor_stress",
+      "category": "factual_knowledge",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 270,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "This    is    a    stress    test     for    whitespace     compression.    \n\n\n\n"
+    },
+    {
+      "task_id": "ch12_math_huge_numbers",
+      "category": null,
+      "source": "deterministic",
+      "model_used": null,
+      "tokens_spent": 0,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "What is 987654321 * 123456789?"
+    },
+    {
+      "task_id": "ch13_logic_grid",
+      "category": "logical_reasoning",
+      "source": "reasoning_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 302,
+      "latency_seconds": 0.0,
+      "was_corrected": true,
+      "prompt_preview": "Three musicians play different instruments (guitar, piano, drums) and live in di"
+    },
+    {
+      "task_id": "ch14_code_debug_recursion",
+      "category": "code_debugging",
+      "source": "code_model",
+      "model_used": "accounts/fireworks/models/kimi-k2p7-code",
+      "tokens_spent": 127,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "This recursive fibonacci function crashes with recursion depth error for large i"
+    },
+    {
+      "task_id": "ch15_factual_obscure",
+      "category": "factual_knowledge",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 128,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "In what year was the Treaty of Westphalia signed, and which major European confl"
+    }
+  ],
+  "model_usage": {
+    "accounts/fireworks/models/minimax-m3": {
+      "calls": 11,
+      "tokens": 2357
+    },
+    "accounts/fireworks/models/kimi-k2p7-code": {
+      "calls": 3,
+      "tokens": 432
+    },
+    "none": {
+      "calls": 1,
+      "tokens": 0
+    }
+  },
+  "category_stats": {
+    "mathematical_reasoning": {
+      "count": 2,
+      "total_tokens": 277,
+      "avg_latency": 0.0
+    },
+    "logical_reasoning": {
+      "count": 3,
+      "total_tokens": 826,
+      "avg_latency": 0.0
+    },
+    "code_debugging": {
+      "count": 2,
+      "total_tokens": 307,
+      "avg_latency": 0.0
+    },
+    "code_generation": {
+      "count": 1,
+      "total_tokens": 125,
+      "avg_latency": 0.0
+    },
+    "named_entity_recognition": {
+      "count": 2,
+      "total_tokens": 340,
+      "avg_latency": 0.0
+    },
+    "sentiment_classification": {
+      "count": 1,
+      "total_tokens": 299,
+      "avg_latency": 0.0
+    },
+    "text_summarization": {
+      "count": 1,
+      "total_tokens": 217,
+      "avg_latency": 0.0
+    },
+    "factual_knowledge": {
+      "count": 2,
+      "total_tokens": 398,
+      "avg_latency": 0.0
+    },
+    "unknown": {
+      "count": 1,
+      "total_tokens": 0,
+      "avg_latency": 0.0
+    }
+  },
+  "usage_tracker": {
+    "call_count": 19,
+    "prompt_tokens": 2214,
+    "completion_tokens": 575,
+    "total_tokens": 2789
+  }
+}

@@ -1,7 +1,7 @@
 """
 config.py
 =========
-OptiRoute AI icin merkezi konfigurasyon modulu.
+Adaptive Model Dispatcher icin merkezi konfigurasyon modulu.
 
 Sorumluluklari:
   1. .env dosyasini / ortam degiskenlerini oku.

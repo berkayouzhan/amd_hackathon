@@ -4,6 +4,7 @@
 !.env.example
 
 .git
+.github
 .gitignore
 
 __pycache__/
@@ -13,10 +14,20 @@ __pycache__/
 venv/
 .venv/
 
+# Test ve gelistirme dosyalari (image boyutunu kucultur)
 tests/
 requirements-dev.txt
+local_test/
+fake_fireworks_client.py
 
+# Dokumantasyon (image icinde gereksiz)
 HANDOFF.md
 README.md
+*.md
 
-local_test/results.json
+# Editör/IDE dosyalari
+.vscode/
+.idea/
+*.swp
+*.swo
+

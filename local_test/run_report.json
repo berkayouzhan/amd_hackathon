@@ -1,0 +1,147 @@
+{
+  "run_id": "2026-07-10T09:46:49.213755+00:00",
+  "total_tasks": 8,
+  "total_tokens": 1282,
+  "total_duration_seconds": 0.03,
+  "corrected_count": 1,
+  "tasks": [
+    {
+      "task_id": "t1_factual",
+      "category": "factual_knowledge",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 121,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "What is the capital of France, and roughly what is its population?"
+    },
+    {
+      "task_id": "t2_math",
+      "category": "mathematical_reasoning",
+      "source": "reasoning_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 137,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "A shirt costs $40. It is discounted by 15%, then a further 10% is taken off the "
+    },
+    {
+      "task_id": "t3_sentiment",
+      "category": "sentiment_classification",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 141,
+      "latency_seconds": 0.016,
+      "was_corrected": false,
+      "prompt_preview": "Classify the sentiment (positive, negative, or neutral) of this review and brief"
+    },
+    {
+      "task_id": "t4_summarization",
+      "category": "text_summarization",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 207,
+      "latency_seconds": 0.016,
+      "was_corrected": false,
+      "prompt_preview": "Summarise the following text in exactly one sentence: 'The city council voted on"
+    },
+    {
+      "task_id": "t5_ner",
+      "category": "named_entity_recognition",
+      "source": "default_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 166,
+      "latency_seconds": 0.016,
+      "was_corrected": false,
+      "prompt_preview": "Extract all named entities (person, organization, location, date) from this sent"
+    },
+    {
+      "task_id": "t6_code_debug",
+      "category": "code_debugging",
+      "source": "code_model",
+      "model_used": "accounts/fireworks/models/kimi-k2p7-code",
+      "tokens_spent": 119,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "This Python function should return the sum of a list, but it has a bug. Find and"
+    },
+    {
+      "task_id": "t7_logic",
+      "category": "logical_reasoning",
+      "source": "reasoning_model",
+      "model_used": "accounts/fireworks/models/minimax-m3",
+      "tokens_spent": 266,
+      "latency_seconds": 0.0,
+      "was_corrected": true,
+      "prompt_preview": "Three friends - Alex, Blair, and Casey - each own a different pet (cat, dog, fis"
+    },
+    {
+      "task_id": "t8_codegen",
+      "category": "code_generation",
+      "source": "code_model",
+      "model_used": "accounts/fireworks/models/kimi-k2p7-code",
+      "tokens_spent": 125,
+      "latency_seconds": 0.0,
+      "was_corrected": false,
+      "prompt_preview": "Write a Python function `is_palindrome(s: str) -> bool` that returns True if a s"
+    }
+  ],
+  "model_usage": {
+    "accounts/fireworks/models/minimax-m3": {
+      "calls": 6,
+      "tokens": 1038
+    },
+    "accounts/fireworks/models/kimi-k2p7-code": {
+      "calls": 2,
+      "tokens": 244
+    }
+  },
+  "category_stats": {
+    "factual_knowledge": {
+      "count": 1,
+      "total_tokens": 121,
+      "avg_latency": 0.0
+    },
+    "mathematical_reasoning": {
+      "count": 1,
+      "total_tokens": 137,
+      "avg_latency": 0.0
+    },
+    "sentiment_classification": {
+      "count": 1,
+      "total_tokens": 141,
+      "avg_latency": 0.016
+    },
+    "text_summarization": {
+      "count": 1,
+      "total_tokens": 207,
+      "avg_latency": 0.016
+    },
+    "named_entity_recognition": {
+      "count": 1,
+      "total_tokens": 166,
+      "avg_latency": 0.016
+    },
+    "code_debugging": {
+      "count": 1,
+      "total_tokens": 119,
+      "avg_latency": 0.0
+    },
+    "logical_reasoning": {
+      "count": 1,
+      "total_tokens": 266,
+      "avg_latency": 0.0
+    },
+    "code_generation": {
+      "count": 1,
+      "total_tokens": 125,
+      "avg_latency": 0.0
+    }
+  },
+  "usage_tracker": {
+    "call_count": 9,
+    "prompt_tokens": 991,
+    "completion_tokens": 291,
+    "total_tokens": 1282
+  }
+}

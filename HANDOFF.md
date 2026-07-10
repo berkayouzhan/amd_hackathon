@@ -1,4 +1,4 @@
-# OptiRoute AI — Proje Durumu / Devir Notu
+# Adaptive Model Dispatcher — Proje Durumu / Devir Notu
 
 > **2026-07-09 GÜNCELLEMESİ:** Yeni bir Claude oturumunda, kullanıcı sadece
 > `config.py`, `fireworks_client.py`, `main.py`, `Dockerfile`, `tasks.json`

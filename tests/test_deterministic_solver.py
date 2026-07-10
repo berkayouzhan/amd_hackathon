@@ -56,9 +56,9 @@ class TestNegativeCases:
         prompt = "A shirt costs $40. It is discounted by 15%. What is the final price?"
         assert try_solve(prompt) is None
 
-    def test_multi_step_rejected(self):
-        """Birden fazla islem iceren ifadeler reddedilmeli."""
-        assert try_solve("What is 2 + 3 * 4?") is None
+    def test_multi_step_now_solved(self):
+        """Birden fazla islem iceren ifadeler artik expression solver ile cozulebilir."""
+        assert try_solve("What is 2 + 3 * 4?") == "14"
 
     def test_plain_text_rejected(self):
         assert try_solve("What is the capital of France?") is None

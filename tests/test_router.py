@@ -66,7 +66,10 @@ def test_gemma_failure_falls_back_silently(router, client):
 
     assert result.source == RouteSource.DEFAULT_MODEL
     assert "minimax" in result.model_used
-    assert result.tokens_spent == 41 + 30
+    # Triage artik heuristic ile 0 token harciyor (factual_knowledge heuristic
+    # 'What is' kalibini yakaladigi icin model cagrisi yapilmiyor)
+    assert result.tokens_spent == 30
+
 
 
 def test_invalid_answer_triggers_corrective_retry(router, client):

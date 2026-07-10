@@ -95,21 +95,24 @@ class TestHeuristicClassify:
 
     def test_no_match_returns_none(self):
         """Hicbir regex'e uymayan metin None donmeli (model-fallback tetiklenir)."""
-        assert _heuristic_classify("What is the capital of France?") is None
+        # Gercekten hicbir heuristic kuralina uymayan bir prompt kullaniyoruz:
+        # soru kelimesi yok, kategori-ozel keyword yok.
+        assert _heuristic_classify("The weather today is quite pleasant.") is None
 
 
 class TestClassifyWithModelFallback:
     """Heuristic eslesmediginde model-fallback siniflandirmanin calismasi."""
 
     def test_model_fallback_called_when_heuristic_fails(self):
-        """'What is the capital of France?' heuristice uymaz, model cagirilmali."""
+        """Heuristice uymayan bir prompt icin model cagirilmali."""
         mock_client = MagicMock()
         mock_client.chat_completion.return_value = make_completion_result("1", total_tokens=41)
 
         mock_settings = MagicMock()
         mock_settings.roles.default = "accounts/fireworks/models/minimax-m3"
 
-        category, tokens = classify("What is the capital of France?", mock_client, mock_settings)
+        # Hicbir heuristic'e uymayan bir prompt kullan
+        category, tokens = classify("The weather today is quite pleasant.", mock_client, mock_settings)
 
         assert category == TaskCategory.FACTUAL_KNOWLEDGE
         assert tokens == 41
