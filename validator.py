@@ -25,18 +25,24 @@ _REFUSAL_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
-_CODE_SIGNAL = re.compile(
-    r"```|(^|\n)\s*def\s+\w+\s*\(|\breturn\b|\bfunction\b|\bclass\s+\w+|"
-    r"\bimport\s+\w+|\bfor\s+\w+\s+in\b|\bwhile\s+\w+|\bif\s+\w+",
-    re.IGNORECASE,
-)
+_CODE_SIGNALS = [
+    re.compile(r"```"),
+    re.compile(r"(^|\n)\s*def\s+\w+\s*\("),
+    re.compile(r"\breturn\b"),
+    re.compile(r"\bimport\s+\w+"),
+    re.compile(r"\bclass\s+\w+"),
+    re.compile(r"\bfor\s+\w+\s+in\b"),
+    re.compile(r"\bwhile\s+\w+"),
+    re.compile(r"\bif\s+\w+.*:", re.IGNORECASE),
+    re.compile(r"\bfunction\b"),
+]
 
 _SENTIMENT_KEYWORDS = re.compile(
     r"\b(positive|negative|neutral|mixed)\b", re.IGNORECASE
 )
 
 _LOGIC_CONCLUSION = re.compile(
-    r"\b(therefore|thus|hence|conclusion|answer:|the answer is|so,?\s+\w+\s+(is|are|owns?|lives?))\b",
+    r"\b(therefore|thus|hence|conclusion|answer:|the answer is|final answer:|so,?\s+\w+\s+(is|are|owns?|lives?))\b",
     re.IGNORECASE,
 )
 
@@ -68,7 +74,9 @@ def _is_valid_json(text: str) -> bool:
 
 
 def _looks_like_code(text: str) -> bool:
-    return bool(_CODE_SIGNAL.search(text))
+    """En az 2 farkli kod sinyali olmali (false positive azaltma)."""
+    signal_count = sum(1 for sig in _CODE_SIGNALS if sig.search(text))
+    return signal_count >= 2
 
 
 def _has_digit(text: str) -> bool:
@@ -101,7 +109,11 @@ def validate(result, category: TaskCategory) -> bool:
         return _is_valid_json(text)
 
     if category == TaskCategory.MATHEMATICAL_REASONING:
-        return _has_digit(text)
+        if not _has_digit(text):
+            return False
+        # Son satirda sayi olmali (system prompt bunu istiyor)
+        last_line = text.strip().split('\n')[-1].strip()
+        return bool(re.search(r'\d+(?:\.\d+)?', last_line))
 
     if category in (TaskCategory.CODE_DEBUGGING, TaskCategory.CODE_GENERATION):
         return _looks_like_code(text)

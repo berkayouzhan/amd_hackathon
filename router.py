@@ -22,6 +22,7 @@ Akis (bkz. HANDOFF.md / README.md icin ayrintili gerekce):
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
@@ -40,11 +41,35 @@ logger = logging.getLogger("optiroute.router")
 # yavas/hazir degilse normal fallback cagrisini geciktirmemesi icin.
 _GEMMA_ATTEMPT_TIMEOUT_SECONDS = 6.0
 
-_CORRECTION_INSTRUCTION = (
+_DEFAULT_CORRECTION_INSTRUCTION = (
     "That answer looks invalid or incomplete for this task. Please provide a "
     "corrected answer that fully satisfies the original request. Respond with "
     "ONLY the corrected answer."
 )
+
+# Kategori-ozel duzeltme talimatlari: jenerik yerine spesifik format beklentisi
+# belirterek retry accuracy'sini artir.
+_CORRECTION_INSTRUCTIONS: dict[TaskCategory, str] = {
+    TaskCategory.NAMED_ENTITY_RECOGNITION:
+        "Your answer must be a valid JSON array with no markdown fences. "
+        "Respond with ONLY the corrected JSON array, nothing else. "
+        'Format: [{"entity": "value", "type": "TYPE"}]',
+    TaskCategory.CODE_DEBUGGING:
+        "Your answer must contain the COMPLETE corrected code that fixes the bug. "
+        "Start with a '# Bug:' comment. Respond with ONLY the fixed code.",
+    TaskCategory.CODE_GENERATION:
+        "Your answer must contain complete, runnable code with necessary imports. "
+        "Respond with ONLY the code — no prose, no explanations.",
+    TaskCategory.MATHEMATICAL_REASONING:
+        "Your answer must end with 'Final Answer: <number>' on the last line. "
+        "Recalculate carefully and respond with the corrected step-by-step solution.",
+    TaskCategory.SENTIMENT_CLASSIFICATION:
+        "Your answer must start with EXACTLY one of: positive, negative, neutral, or mixed "
+        "(lowercase). Follow with a single sentence justification. Nothing else.",
+    TaskCategory.LOGICAL_REASONING:
+        "Your answer must end with 'Answer: <your complete answer>' on the last line. "
+        "Re-examine the logic and provide the corrected solution.",
+}
 
 _SYSTEM_PROMPTS: dict[TaskCategory, str] = {
     TaskCategory.FACTUAL_KNOWLEDGE:
@@ -57,9 +82,11 @@ _SYSTEM_PROMPTS: dict[TaskCategory, str] = {
     TaskCategory.MATHEMATICAL_REASONING:
         "You are a math problem solver. Solve the problem step by step in "
         "English. Keep reasoning CONCISE — show key steps only, skip obvious "
-        "arithmetic. On the LAST line of your response, write ONLY the final "
-        "numeric answer as a plain number (no units, no text, no equals sign). "
-        "Example last line:\n42.5",
+        "arithmetic. IMPORTANT: After your reasoning, write your final answer "
+        "on the LAST line in this EXACT format:\n\n"
+        "Final Answer: <number>\n\n"
+        "The number should be plain (no units, no commas, no dollar signs). "
+        "Example last line:\nFinal Answer: 42.5",
 
     TaskCategory.SENTIMENT_CLASSIFICATION:
         "You are a sentiment classifier. Your response MUST start with EXACTLY "
@@ -91,13 +118,15 @@ _SYSTEM_PROMPTS: dict[TaskCategory, str] = {
 
     TaskCategory.LOGICAL_REASONING:
         "You are a logic puzzle solver. Solve step by step in English. Keep "
-        "each deduction step to 1-2 sentences. End your response with a clear "
-        "final answer starting with 'Therefore:' or 'Answer:' that directly "
-        "states the complete solution.",
+        "each deduction step to 1-2 sentences. End with EXACTLY this format "
+        "on the last line:\n\nAnswer: <your complete answer here>\n\n"
+        "Example last line:\nAnswer: Alice owns the cat, Bob owns the dog.",
 
     TaskCategory.CODE_GENERATION:
         "You are a code generator. Write the requested code in the specified "
-        "language (default: Python). Respond with ONLY the code — no prose, no "
+        "language. If no language is specified, default to Python 3. "
+        "Include necessary imports at the top. "
+        "Respond with ONLY the code — no prose, no "
         "explanation outside code comments. The code must be complete, correct, "
         "and ready to run. Include type hints where appropriate.",
 }
@@ -135,11 +164,18 @@ def _build_messages(category: Optional[TaskCategory], prompt: str) -> list[dict]
     ]
 
 
+# Gemma circuit-breaker ayarlari: zaman bazli reset ile daha akilli strateji
+_GEMMA_CIRCUIT_RESET_SECONDS = 30.0  # Bu kadar sure sonra tekrar dene
+_GEMMA_MAX_FAILURES = 2  # Bu kadar basarisizliktan sonra kalici kapat
+
+
 class OptiRouter:
     def __init__(self, client: FireworksClient, settings: Settings):
         self._client = client
         self._settings = settings
-        self._gemma_circuit_open = False  # Ilk basarisizliktan sonra True olur
+        self._gemma_circuit_open = False
+        self._gemma_failure_count = 0
+        self._gemma_last_failure_time = 0.0
 
     def solve(self, prompt: str) -> RouteResult:
         compressed = compress_prompt(prompt)
@@ -168,16 +204,17 @@ class OptiRouter:
 
         # --- Local Model Tier (0 Fireworks Token) ---
         # Sentiment, NER ve Summarization gibi genel hafif gorevlerde once yerel modeli dene
-        if category in (TaskCategory.SENTIMENT_CLASSIFICATION, TaskCategory.NAMED_ENTITY_RECOGNITION, TaskCategory.TEXT_SUMMARIZATION):
+        if category in (TaskCategory.SENTIMENT_CLASSIFICATION, TaskCategory.NAMED_ENTITY_RECOGNITION, TaskCategory.TEXT_SUMMARIZATION, TaskCategory.FACTUAL_KNOWLEDGE):
             from local_model import run_local_inference
             system_prompt = _SYSTEM_PROMPTS.get(category, _DEFAULT_SYSTEM_PROMPT) if category else _DEFAULT_SYSTEM_PROMPT
             local_res = run_local_inference(system_prompt, compressed, max_tokens)
             if local_res is not None:
-                # Yerel model ciktisini validate et. Gecerliyse direkt don (0 Fireworks token!)
+                # Yerel model ciktisini temizle + validate et
+                cleaned_local_text = clean_answer(local_res.text, category)
                 if validate(local_res, category):
                     logger.info("Yerel model basarili oldu (0 Fireworks token) - Kategori: %s", category.value)
                     return RouteResult(
-                        text=local_res.text,
+                        text=cleaned_local_text,
                         source=RouteSource.LOCAL_MODEL,
                         category=category,
                         model_used=local_res.model,
@@ -185,6 +222,24 @@ class OptiRouter:
                         was_corrected=False,
                     )
                 else:
+                    # Temizlenmiş haliyle tekrar validate dene (bazen sadece intro strip yeterli)
+                    from fireworks_client import CompletionResult
+                    cleaned_res = CompletionResult(
+                        text=cleaned_local_text, model=local_res.model,
+                        prompt_tokens=0, completion_tokens=0, total_tokens=0,
+                        latency_seconds=local_res.latency_seconds,
+                        raw_finish_reason=local_res.raw_finish_reason,
+                    )
+                    if cleaned_local_text != local_res.text and validate(cleaned_res, category):
+                        logger.info("Yerel model temizleme sonrasi basarili (0 Fireworks token) - Kategori: %s", category.value)
+                        return RouteResult(
+                            text=cleaned_local_text,
+                            source=RouteSource.LOCAL_MODEL,
+                            category=category,
+                            model_used=local_res.model,
+                            tokens_spent=tokens_spent,
+                            was_corrected=False,
+                        )
                     logger.warning("Yerel model ciktisi dogrulamadan gecemedi, Fireworks'e dusulüyor - Kategori: %s", category.value)
 
         if role == "default":
@@ -203,13 +258,14 @@ class OptiRouter:
         tokens_spent += result.total_tokens
         text = result.text
         was_corrected = False
+        corrected = None  # Bug fix: validate() True donerse corrected tanimsiz kalmaz
 
         # --- Speculative validation + tek seferlik duzeltici retry ---
         if not validate(result, category):
             # Eger ilk cevap Gemma'dan geldiyse ve gecersizse, retry'i risk alip tekrar
             # Gemma'ya gondermek yerine kararli serverless default modele (minimax-m3) yonlendir.
             retry_model = self._settings.roles.default if "gemma" in result.model.lower() else result.model
-            corrected = self._attempt_corrective_retry(retry_model, messages, result.text, max_tokens)
+            corrected = self._attempt_corrective_retry(retry_model, messages, result.text, max_tokens, category)
             if corrected is not None:
                 tokens_spent += corrected.total_tokens
                 text = corrected.text
@@ -232,9 +288,17 @@ class OptiRouter:
         retrysiz dene (bonus odulu icin), basarisiz olursa SESSIZCE (exception
         yutulur) guvenilir serverless modele (minimax-m3) dus.
 
-        Circuit-breaker: Gemma bir kez basarisiz olursa, kalan gorevlerde
-        tekrar denenmez - her gorev icin 6s timeout kaybini onler."""
+        Circuit-breaker (zaman bazli): Gemma basarisiz olursa belirli sure
+        sonra tekrar denenir. _GEMMA_MAX_FAILURES'a ulasirsa kalici kapanir."""
         gemma_model = self._settings.gemma.model
+
+        # Circuit-breaker: zaman bazli reset kontrolu
+        if self._gemma_circuit_open and self._gemma_failure_count < _GEMMA_MAX_FAILURES:
+            if time.monotonic() - self._gemma_last_failure_time > _GEMMA_CIRCUIT_RESET_SECONDS:
+                self._gemma_circuit_open = False
+                logger.info("Gemma circuit-breaker RESET — tekrar denenecek (basarisizlik: %d/%d)",
+                            self._gemma_failure_count, _GEMMA_MAX_FAILURES)
+
         if gemma_model and not self._gemma_circuit_open:
             try:
                 result = self._client.chat_completion(
@@ -247,25 +311,43 @@ class OptiRouter:
                 return result, RouteSource.GEMMA_BONUS
             except Exception as exc:  # noqa: BLE001 - kasitli genis yakalama
                 self._gemma_circuit_open = True
-                logger.warning(
-                    "Gemma denemesi basarisiz oldu, circuit-breaker AKTIF — "
-                    "kalan gorevlerde Gemma denenmeyecek, minimax-m3'e dusuluyor: %s", exc
-                )
+                self._gemma_failure_count += 1
+                self._gemma_last_failure_time = time.monotonic()
+                if self._gemma_failure_count >= _GEMMA_MAX_FAILURES:
+                    logger.warning(
+                        "Gemma denemesi basarisiz oldu (%d/%d), circuit-breaker KALICI KAPANDI — "
+                        "minimax-m3'e dusuluyor: %s", self._gemma_failure_count, _GEMMA_MAX_FAILURES, exc
+                    )
+                else:
+                    logger.warning(
+                        "Gemma denemesi basarisiz oldu (%d/%d), circuit-breaker AKTIF (%.0fs sonra reset) — "
+                        "minimax-m3'e dusuluyor: %s",
+                        self._gemma_failure_count, _GEMMA_MAX_FAILURES,
+                        _GEMMA_CIRCUIT_RESET_SECONDS, exc
+                    )
 
         result = self._client.chat_completion(
             model=self._settings.roles.default, messages=messages, max_tokens=max_tokens,
         )
         return result, RouteSource.DEFAULT_MODEL
 
-    def _attempt_corrective_retry(self, model: str, messages: list[dict], previous_answer: str, max_tokens: int):
-        """Ayni modele TEK SEFERLIK duzeltici retry. Bu da basarisiz olursa
-        (ör. network hatasi) None doner - CRASH ETMEZ, ilk cevap korunur."""
+    def _attempt_corrective_retry(
+        self, model: str, messages: list[dict], previous_answer: str,
+        max_tokens: int, category: Optional[TaskCategory] = None,
+    ):
+        """Ayni modele TEK SEFERLIK duzeltici retry. Kategori-ozel talimat
+        kullanir. Bu da basarisiz olursa (ör. network hatasi) None doner -
+        CRASH ETMEZ, ilk cevap korunur."""
+        correction = _CORRECTION_INSTRUCTIONS.get(category, _DEFAULT_CORRECTION_INSTRUCTION) if category else _DEFAULT_CORRECTION_INSTRUCTION
         retry_messages = messages + [
             {"role": "assistant", "content": previous_answer},
-            {"role": "user", "content": _CORRECTION_INSTRUCTION},
+            {"role": "user", "content": correction},
         ]
         try:
-            return self._client.chat_completion(model=model, messages=retry_messages, max_tokens=max_tokens)
+            return self._client.chat_completion(
+                model=model, messages=retry_messages,
+                max_tokens=max_tokens, temperature=0.1,
+            )
         except Exception as exc:  # noqa: BLE001 - kasitli genis yakalama
             logger.warning("Duzeltici retry basarisiz oldu, ilk cevap korunuyor: %s", exc)
             return None

@@ -109,3 +109,28 @@ class TestEmptyInput:
 
     def test_whitespace_only(self):
         assert clean("   \n\n  ", TaskCategory.FACTUAL_KNOWLEDGE) == ""
+
+
+class TestMathAnswerExtraction:
+    def test_final_answer_format(self):
+        text = "Step 1: 5 + 3 = 8\nStep 2: 8 * 2 = 16\nFinal Answer: 16"
+        assert clean(text, TaskCategory.MATHEMATICAL_REASONING) == "16"
+
+    def test_the_answer_is_format(self):
+        text = "Some reasoning here\nThe answer is 42.5"
+        assert clean(text, TaskCategory.MATHEMATICAL_REASONING) == "42.5"
+
+    def test_answer_with_commas(self):
+        text = "Calculation result\nFinal Answer: 1,000,000"
+        assert clean(text, TaskCategory.MATHEMATICAL_REASONING) == "1000000"
+
+    def test_no_final_answer_keeps_full_text(self):
+        text = "The result of 5 + 3 is clearly 8"
+        result = clean(text, TaskCategory.MATHEMATICAL_REASONING)
+        assert "8" in result
+
+    def test_general_intro_strip_for_factual(self):
+        text = "Sure! Paris is the capital of France."
+        result = clean(text, TaskCategory.FACTUAL_KNOWLEDGE)
+        assert result == "Paris is the capital of France."
+

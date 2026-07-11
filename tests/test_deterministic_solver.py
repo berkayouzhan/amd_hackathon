@@ -83,3 +83,35 @@ class TestEdgeCases:
     def test_large_numbers(self):
         result = try_solve("999999 * 999999")
         assert result == "999998000001"
+
+
+class TestTemperatureConversion:
+    def test_celsius_to_fahrenheit(self):
+        assert try_solve("Convert 100 Celsius to Fahrenheit") == "212"
+
+    def test_kelvin_to_celsius(self):
+        assert try_solve("Convert 373.15 Kelvin to Celsius") == "100"
+
+    def test_fahrenheit_to_celsius(self):
+        assert try_solve("What is 32 Fahrenheit to Celsius?") == "0"
+
+    def test_same_unit_returns_none(self):
+        assert try_solve("Convert 100 Celsius to Celsius") is None
+
+
+class TestSqrtExpression:
+    def test_sqrt_144(self):
+        assert try_solve("sqrt(144)") == "12"
+
+    def test_sqrt_in_expression(self):
+        assert try_solve("Calculate: sqrt(25) + 3") == "8"
+
+
+class TestSimpleDiscount:
+    def test_basic_discount(self):
+        assert try_solve("A shirt costs $80 and has a 25% discount. What is the final price?") == "60"
+
+    def test_no_match_complex_discount(self):
+        # Çok karmaşık kelime problemleri yakalanmamalı
+        assert try_solve("How much do I save with a 25% discount?") is None
+

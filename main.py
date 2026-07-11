@@ -81,7 +81,8 @@ def write_results(path: str, results: list[dict[str, Any]]) -> None:
 
 
 def solve_all_tasks(
-    tasks: list[dict], router: OptiRouter, deadline: float
+    tasks: list[dict], router: OptiRouter, deadline: float,
+    results_output_path: str = "",
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Gorev listesini PARALEL olarak cozer (ThreadPoolExecutor).
 
@@ -95,10 +96,13 @@ def solve_all_tasks(
     onemli olcude azaltir. Thread-safety: UsageTracker lock'lu, her gorev
     izole try/except icerisinde.
 
+    Progress-aware: Her _CHECKPOINT_INTERVAL gorevde bir ara sonuclari yazar.
+
     Doner: (results, task_details) - results harness icin, task_details dashboard icin.
     """
     total = len(tasks)
     max_workers = int(os.getenv("PARALLEL_WORKERS", "3"))
+    _CHECKPOINT_INTERVAL = int(os.getenv("CHECKPOINT_INTERVAL", "5"))
 
     def _solve_single(idx: int, task: dict) -> tuple[dict[str, Any], dict[str, Any]]:
         task_id = task["task_id"]
@@ -169,6 +173,8 @@ def solve_all_tasks(
     results_by_idx: dict[int, dict[str, Any]] = {}
     details_by_idx: dict[int, dict[str, Any]] = {}
 
+    completed_count = 0
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_idx = {
             executor.submit(_solve_single, idx, task): idx
@@ -194,6 +200,19 @@ def solve_all_tasks(
                     "latency_seconds": 0.0, "was_corrected": False,
                     "prompt_preview": tasks[idx - 1]["prompt"][:80],
                 }
+
+            # Progress-aware checkpoint: periyodik olarak ara sonuclari yaz
+            completed_count += 1
+            if results_output_path and _CHECKPOINT_INTERVAL > 0 and completed_count % _CHECKPOINT_INTERVAL == 0 and completed_count < total:
+                try:
+                    partial_results = [
+                        results_by_idx.get(i, {"task_id": tasks[i - 1]["task_id"], "answer": ""})
+                        for i in range(1, total + 1)
+                    ]
+                    write_results(results_output_path, partial_results)
+                    logger.info("Checkpoint yazildi: %d/%d gorev tamamlandi.", completed_count, total)
+                except Exception:
+                    logger.warning("Checkpoint yazilamadi (skor etkilenmez).", exc_info=True)
 
     # Sirali sonuc listesi olustur (task_id sirasina gore)
     results = [results_by_idx[i] for i in range(1, total + 1)]
@@ -296,7 +315,7 @@ def main() -> int:
         client = FireworksClient(settings)
     router = OptiRouter(client, settings)
 
-    results, task_details = solve_all_tasks(tasks, router, deadline)
+    results, task_details = solve_all_tasks(tasks, router, deadline, settings.results_output_path)
 
     try:
         write_results(settings.results_output_path, results)

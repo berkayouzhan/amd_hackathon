@@ -264,6 +264,9 @@ function renderModelChart(data) {
         } else if (name.includes('gemma')) {
             grad.addColorStop(0, 'rgba(236, 72, 153, 0.55)');
             grad.addColorStop(1, 'rgba(236, 72, 153, 0.02)');
+        } else if (name.includes('qwen') || name.includes('local')) {
+            grad.addColorStop(0, 'rgba(16, 185, 129, 0.55)');
+            grad.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
         } else {
             grad.addColorStop(0, 'rgba(139, 92, 246, 0.55)');
             grad.addColorStop(1, 'rgba(139, 92, 246, 0.02)');
@@ -276,6 +279,7 @@ function renderModelChart(data) {
         if (name.includes('minimax')) return 'rgba(99, 102, 241, 0.9)';
         if (name.includes('kimi')) return 'rgba(6, 182, 212, 0.9)';
         if (name.includes('gemma')) return 'rgba(236, 72, 153, 0.9)';
+        if (name.includes('qwen') || name.includes('local')) return 'rgba(16, 185, 129, 0.9)';
         return 'rgba(139, 92, 246, 0.9)';
     });
 

@@ -45,4 +45,4 @@ We designed and integrated a professional, dark-mode monitoring dashboard:
 * **Interactive Slide Deck:** A built-in presentation walking judges through the pipeline architecture directly in the browser.
 * **Granular Token Metrics:** Track tokens spent, latency, and model calls dynamically.
 * **Drag-and-Drop Analysis:** Drop any `run_report.json` file onto the dashboard to visualize pipeline runs instantly.
-* **133 Automated Tests:** Solid software engineering with 100% test pass rate ensuring stability.
+* **150+ Automated Tests:** Solid software engineering with 100% test pass rate ensuring stability.

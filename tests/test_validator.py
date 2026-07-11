@@ -105,8 +105,14 @@ class TestCodeValidation:
         assert validate(result, TaskCategory.CODE_DEBUGGING) is True
 
     def test_code_with_return_accepted(self):
-        result = make_completion_result("The fix is to use return total instead of total = n", finish_reason="stop")
+        # Guclendirilmis validator: en az 2 kod sinyali gerekli
+        result = make_completion_result("def fix(n):\n    return total", finish_reason="stop")
         assert validate(result, TaskCategory.CODE_DEBUGGING) is True
+
+    def test_prose_with_single_code_word_rejected(self):
+        # Sadece "return" kelimesi iceren prose, kod degildir
+        result = make_completion_result("The fix is to use return total instead of total = n", finish_reason="stop")
+        assert validate(result, TaskCategory.CODE_DEBUGGING) is False
 
     def test_prose_without_code_rejected(self):
         result = make_completion_result("You should check the loop variable assignment.", finish_reason="stop")

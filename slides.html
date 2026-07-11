@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adaptive Model Dispatcher — AMD Hackathon Track 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  @page { size: landscape; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #0a0a1a; color: #e0e0e0; }
+
+  .slide {
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 60px 80px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ─── Backgrounds ─── */
+  .slide-cover {
+    background: linear-gradient(135deg, #0a0a2e 0%, #1a0a3e 30%, #0a1a3e 70%, #0a0a2e 100%);
+  }
+  .slide-dark {
+    background: linear-gradient(160deg, #0d0d24 0%, #111133 50%, #0d0d24 100%);
+  }
+  .slide-accent {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 50%, #0d1b2a 100%);
+  }
+  .slide-final {
+    background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0a0a2e 100%);
+  }
+
+  /* ─── Decorative elements ─── */
+  .slide::before {
+    content: ''; position: absolute; top: -50%; right: -30%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+    border-radius: 50%; pointer-events: none;
+  }
+  .slide::after {
+    content: ''; position: absolute; bottom: -40%; left: -20%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+    border-radius: 50%; pointer-events: none;
+  }
+
+  /* ─── Typography ─── */
+  h1 { font-size: 3.2em; font-weight: 900; letter-spacing: -2px; line-height: 1.1; }
+  h2 { font-size: 2.4em; font-weight: 800; letter-spacing: -1px; margin-bottom: 30px; }
+  h3 { font-size: 1.4em; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #818cf8, #60a5fa, #34d399);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .accent-purple { color: #a78bfa; }
+  .accent-blue { color: #60a5fa; }
+  .accent-green { color: #34d399; }
+  .accent-orange { color: #fb923c; }
+  .accent-red { color: #f87171; }
+
+  .subtitle {
+    font-size: 1.3em; color: #94a3b8; font-weight: 300; margin-top: 16px; max-width: 700px; text-align: center;
+  }
+  .tagline {
+    font-size: 1em; color: #64748b; margin-top: 30px; letter-spacing: 3px; text-transform: uppercase; font-weight: 500;
+  }
+
+  /* ─── Content ─── */
+  .content { z-index: 1; width: 100%; max-width: 1100px; }
+  .content-left { align-items: flex-start; text-align: left; }
+
+  /* ─── Pipeline ─── */
+  .pipeline {
+    display: flex; gap: 8px; align-items: center; margin: 30px 0; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .pipe-step {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 18px; text-align: center; min-width: 130px;
+  }
+  .pipe-step .emoji { font-size: 1.6em; display: block; margin-bottom: 6px; }
+  .pipe-step .label { font-size: 0.78em; font-weight: 600; color: #cbd5e1; }
+  .pipe-step .sub { font-size: 0.65em; color: #64748b; margin-top: 4px; }
+  .pipe-arrow { font-size: 1.4em; color: #475569; }
+
+  /* ─── Feature cards ─── */
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  .feat {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; padding: 20px 22px;
+  }
+  .feat-title { font-size: 0.95em; font-weight: 700; margin-bottom: 6px; }
+  .feat-desc { font-size: 0.78em; color: #94a3b8; line-height: 1.5; }
+
+  /* ─── Comparison table ─── */
+  .comp-table {
+    width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.82em;
+  }
+  .comp-table th {
+    padding: 12px 16px; text-align: left; font-weight: 700; color: #e2e8f0;
+    border-bottom: 2px solid rgba(99,102,241,0.3); background: rgba(255,255,255,0.02);
+  }
+  .comp-table td {
+    padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .comp-table tr:hover td { background: rgba(99,102,241,0.04); }
+  .check { color: #34d399; font-weight: 700; }
+  .cross { color: #64748b; }
+
+  /* ─── Stats row ─── */
+  .stats { display: flex; gap: 30px; margin-top: 30px; justify-content: center; }
+  .stat {
+    text-align: center; background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06); border-radius: 16px;
+    padding: 24px 32px; min-width: 150px;
+  }
+  .stat-num { font-size: 2.4em; font-weight: 900; }
+  .stat-label { font-size: 0.75em; color: #94a3b8; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ─── Lists ─── */
+  .bullet-list { list-style: none; margin-top: 16px; }
+  .bullet-list li {
+    padding: 10px 0; font-size: 0.92em; color: #cbd5e1;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .bullet-list li .icon { font-size: 1.2em; }
+
+  /* ─── Slide numbers ─── */
+  .slide-num {
+    position: absolute; bottom: 20px; right: 40px;
+    font-size: 0.7em; color: #475569; font-weight: 500;
+  }
+  .team-badge {
+    position: absolute; top: 24px; left: 40px;
+    font-size: 0.65em; color: #475569; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  /* ─── Two-column layout ─── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
+  .col-box {
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 24px;
+  }
+  .col-box h4 { font-size: 1em; font-weight: 700; margin-bottom: 12px; }
+  .col-box ul { list-style: none; }
+  .col-box li { font-size: 0.82em; color: #94a3b8; padding: 4px 0; }
+  .col-box li::before { content: '→ '; color: #6366f1; }
+
+  @media print {
+    .slide { page-break-after: always; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SLIDE 1: COVER ═══════════════════ -->
+<div class="slide slide-cover">
+  <div class="tagline">AMD Developer Hackathon: ACT II — Track 1</div>
+  <h1 style="margin-top:20px"><span class="gradient-text">Adaptive Model<br>Dispatcher</span></h1>
+  <p class="subtitle">
+    Intelligent, Token-Efficient Multi-Model Task Orchestrator<br>
+    <em style="color:#64748b">Maximizing accuracy while squeezing token consumption to near-zero.</em>
+  </p>
+  <div class="stats" style="margin-top:50px">
+    <div class="stat"><div class="stat-num accent-green">0</div><div class="stat-label">Tokens for math</div></div>
+    <div class="stat"><div class="stat-num accent-blue">5</div><div class="stat-label">Pipeline layers</div></div>
+    <div class="stat"><div class="stat-num accent-purple">8</div><div class="stat-label">Task categories</div></div>
+    <div class="stat"><div class="stat-num accent-orange">147</div><div class="stat-label">Tests passing</div></div>
+  </div>
+  <div class="slide-num">1 / 7</div>
+</div>
+
+<!-- ═══════════════════ SLIDE 2: PROBLEM ═══════════════════ -->
+<div class="slide slide-dark">
+  <div class="team-badge">Adaptive Model Dispatcher</div>
+  <div class="content content-left">
+    <h3>The Challenge</h3>
+    <h2><span class="accent-red">Why Single-Model Approaches Fail</span></h2>
+    <div class="two-col">
+      <div class="col-box">
+        <h4>❌ Naïve Approach</h4>
+        <ul>
+          <li>Send every task to the same large model</li>
+          <li>Waste tokens on simple math (e.g., "15% of 200")</li>
+          <li>No category awareness → wrong prompt → bad answers</li>
+          <li>No validation → refusals/truncations go undetected</li>
+          <li>Single failure mode → entire batch at risk</li>
+        </ul>
+      </div>
+      <div class="col-box" style="border-color: rgba(99,102,241,0.2);">
+        <h4>✅ Our Approach</h4>
+        <ul>
+          <li>5-layer pipeline intercepts & routes each task</li>
+          <li>Math solved locally at 0 token cost</li>
+          <li>Category-tuned prompts maximize accuracy</li>
+          <li>Speculative validation catches errors before scoring</li>
+          <li>Isolated error handling — one failure won't crash the batch</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:24px; font-size:0.85em; color:#64748b;">
+      Track 1 scoring: <strong style="color:#e2e8f0">Accuracy Gate first</strong>, then rank by <strong style="color:#34d399">ascending token count</strong>.
+      You must pass accuracy to even be ranked — then every token saved matters.
+    </p>
+  </div>
+  <div class="slide-num">2 / 7</div>
+</div>
+
+<!-- ═══════════════════ SLIDE 3: PIPELINE ═══════════════════ -->
+<div class="slide slide-accent">
+  <div class="team-badge">Adaptive Model Dispatcher</div>
+  <div class="content">
+    <h3>Architecture</h3>
+    <h2><span class="gradient-text">5-Layer Sequential Pipeline</span></h2>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <span class="emoji">📥</span>
+        <span class="label">Input</span>
+        <span class="sub">tasks.json</span>
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step" style="border-color: rgba(99,102,241,0.2);">
+        <span class="emoji">🗜️</span>
+        <span class="label">Compress</span>
+        <span class="sub">~15% saved</span>
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step" style="border-color: rgba(52,211,153,0.2);">
+        <span class="emoji">⚡</span>
+        <span class="label">Tier 0</span>
+        <span class="sub">0 tokens</span>
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step" style="border-color: rgba(251,146,60,0.2);">
+        <span class="emoji">🏷️</span>
+        <span class="label">Triage</span>
+        <span class="sub">8 categories</span>
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step" style="border-color: rgba(96,165,250,0.2);">
+        <span class="emoji">🧠</span>
+        <span class="label">Local Model</span>
+        <span class="sub">Qwen 2.5</span>
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step" style="border-color: rgba(167,139,250,0.2);">
+        <span class="emoji">🤖</span>
+        <span class="label">API Call</span>
+        <span class="sub">Fireworks</span>
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step" style="border-color: rgba(248,113,113,0.15);">
+        <span class="emoji">✅</span>
+        <span class="label">Validate</span>
+        <span class="sub">+ retry</span>
+      </div>
+      <span class="pipe-arrow">→</span>
+      <div class="pipe-step">
+        <span class="emoji">📤</span>
+        <span class="label">Output</span>
+        <span class="sub">results.json</span>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:0.82em; color:#94a3b8; margin-top:16px;">
+      Each task flows left-to-right. At every stage, if solved, it <strong style="color:#34d399">short-circuits</strong> and skips remaining steps — saving tokens.
+    </p>
+  </div>
+  <div class="slide-num">3 / 7</div>
+</div>
+
+<!-- ═══════════════════ SLIDE 4: ZERO-TOKEN STRATEGIES ═══════════════════ -->
+<div class="slide slide-dark">
+  <div class="team-badge">Adaptive Model Dispatcher</div>
+  <div class="content content-left">
+    <h3>Token Optimization</h3>
+    <h2><span class="accent-green">Three Zero-Token Tiers</span></h2>
+    <div class="features">
+      <div class="feat">
+        <div class="feat-title">⚡ Tier 0 — Deterministic Solver</div>
+        <div class="feat-desc">
+          Safe AST parser evaluates arithmetic, percentages, square roots, unit conversions (30+ pairs),
+          temperature conversions, and discount problems. <strong>100% accuracy, 0 tokens.</strong>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-title">🏷️ Tier 1 — Regex Heuristic Triage</div>
+        <div class="feat-desc">
+          20+ regex patterns match task categories at zero cost. Covers ~80% of tasks.
+          Ambiguous cases fall back to a lightweight model call for classification only.
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-title">🧠 Local Model — Qwen 2.5 1.5B</div>
+        <div class="feat-desc">
+          Runs inside the Docker container via llama-cpp-python. Handles sentiment, NER,
+          summarization, and factual tasks at <strong>0 Fireworks tokens</strong>. Falls back to API on failure.
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-title">🗜️ Prompt Compression</div>
+        <div class="feat-desc">
+          Strips redundant whitespace, collapses blank lines, and cleans punctuation while
+          preserving code block formatting. Saves <strong>~10-15% input tokens</strong> on every API call.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">4 / 7</div>
+</div>
+
+<!-- ═══════════════════ SLIDE 5: ACCURACY & GEMMA ═══════════════════ -->
+<div class="slide slide-accent">
+  <div class="team-badge">Adaptive Model Dispatcher</div>
+  <div class="content content-left">
+    <h3>Accuracy & Bonus</h3>
+    <h2><span class="accent-purple">Validation + Gemma Strategy</span></h2>
+    <div class="two-col">
+      <div class="col-box">
+        <h4>✅ Speculative Validation</h4>
+        <ul>
+          <li>Empty/whitespace-only responses → rejected</li>
+          <li>Truncated text (ends with "...") → rejected</li>
+          <li>Refusal phrases ("I'm sorry", "As an AI") → rejected</li>
+          <li>NER: validates JSON structure</li>
+          <li>Math: checks for numeric presence</li>
+          <li>Code: looks for def/function/return</li>
+          <li>Suspicious → corrective retry with category-specific instructions</li>
+        </ul>
+      </div>
+      <div class="col-box" style="border-color: rgba(167,139,250,0.2);">
+        <h4>💎 Gemma 4 Bonus Strategy</h4>
+        <ul>
+          <li>Factual, sentiment, NER, summarization → try Gemma first</li>
+          <li>Circuit-breaker: single failure disables Gemma for remaining tasks</li>
+          <li>Time-limited: won't exceed 5s per attempt</li>
+          <li>Silent fallback to MiniMax M3 on any error</li>
+          <li>Protects 10-minute deadline</li>
+          <li>Eligible for $1,000 Gemma bonus prize</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">5 / 7</div>
+</div>
+
+<!-- ═══════════════════ SLIDE 6: MODEL ROUTING ═══════════════════ -->
+<div class="slide slide-dark">
+  <div class="team-badge">Adaptive Model Dispatcher</div>
+  <div class="content content-left">
+    <h3>Model Selection</h3>
+    <h2><span class="accent-blue">Category → Model Routing</span></h2>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Primary Model</th>
+          <th>max_tokens</th>
+          <th>Local Model</th>
+          <th>Tier 0</th>
+          <th>Gemma Try</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Factual Knowledge</td><td>MiniMax M3</td><td>160</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td></tr>
+        <tr><td>Mathematical Reasoning</td><td>MiniMax M3</td><td>320</td><td class="cross">—</td><td class="check">✓ AST solver</td><td class="cross">—</td></tr>
+        <tr><td>Sentiment Classification</td><td>MiniMax M3</td><td>48</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td></tr>
+        <tr><td>Text Summarization</td><td>MiniMax M3</td><td>192</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td></tr>
+        <tr><td>Named Entity Recognition</td><td>MiniMax M3</td><td>192</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td></tr>
+        <tr><td>Code Debugging</td><td>Kimi K2P7</td><td>768</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+        <tr><td>Logical Reasoning</td><td>MiniMax M3</td><td>384</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+        <tr><td>Code Generation</td><td>Kimi K2P7</td><td>768</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:16px; font-size:0.78em; color:#64748b;">
+      MiniMax M3 ($0.30/M) for general tasks • Kimi K2P7 ($0.95/M) for code • Gemma 4 for bonus eligibility • Qwen 2.5 local for 0-token inference
+    </p>
+  </div>
+  <div class="slide-num">6 / 7</div>
+</div>
+
+<!-- ═══════════════════ SLIDE 7: ENGINEERING & SUMMARY ═══════════════════ -->
+<div class="slide slide-final">
+  <div class="team-badge">Adaptive Model Dispatcher</div>
+  <div class="content">
+    <h3>Engineering Excellence</h3>
+    <h2><span class="gradient-text">Built for Production</span></h2>
+    <div class="features">
+      <div class="feat">
+        <div class="feat-title">🔒 Robust Batch Processing</div>
+        <div class="feat-desc">
+          ThreadPoolExecutor for parallel task execution. Isolated error handling per task.
+          Atomic writes (tmp → os.replace). Deadline-aware with 20s safety margin.
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-title">🧪 147 Automated Tests</div>
+        <div class="feat-desc">
+          100% test pass rate. No real API calls — all mocked. Covers deterministic solver,
+          triage, router, validator, answer cleaner, prompt compressor, and main harness.
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-title">📊 Monitoring Dashboard</div>
+        <div class="feat-desc">
+          Dark-mode glassmorphism dashboard with Chart.js. Drag-and-drop run report analysis.
+          Token usage metrics, routing decisions, and pipeline flow visualization.
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-title">🐳 Multi-Stage Docker</div>
+        <div class="feat-desc">
+          Builder stage pre-downloads Qwen model. Runtime stage is lean.
+          linux/amd64 manifest. CI/CD via GitHub Actions.
+        </div>
+      </div>
+    </div>
+    <div class="stats" style="margin-top:30px">
+      <div class="stat"><div class="stat-num accent-green">3</div><div class="stat-label">Zero-token tiers</div></div>
+      <div class="stat"><div class="stat-num accent-blue">5</div><div class="stat-label">Models supported</div></div>
+      <div class="stat"><div class="stat-num accent-purple">147</div><div class="stat-label">Tests passing</div></div>
+      <div class="stat"><div class="stat-num accent-orange">11</div><div class="stat-label">Core modules</div></div>
+    </div>
+    <p style="text-align:center; margin-top:30px; font-size:1.1em; color:#94a3b8;">
+      <strong style="color:#e2e8f0;">github.com/berkayouzhan/amd_hackathon</strong>
+    </p>
+  </div>
+  <div class="slide-num">7 / 7</div>
+</div>
+
+</body>
+</html>

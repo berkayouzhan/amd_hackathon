@@ -51,8 +51,11 @@ _INTRO_INLINE = re.compile(
     re.IGNORECASE,
 )
 
-# Math: son satirdaki sayiyi cikar
-_MATH_FINAL_NUMBER = re.compile(r"^[\s$]*(-?\d[\d,]*\.?\d*)\s*$", re.MULTILINE)
+# Math: "Final Answer: 42" veya "The answer is 42" formatlarini yakala
+_MATH_FINAL_ANSWER = re.compile(
+    r"(?:Final\s+Answer|The\s+answer\s+is|Answer)\s*[:=]?\s*(-?[\d,]+\.?\d*)\s*$",
+    re.IGNORECASE | re.MULTILINE
+)
 
 # Sadece NER/JSON cevaplari icin: fence icerigini cikar
 def _strip_json_fence(text: str) -> str:
@@ -126,17 +129,17 @@ def clean(text: str, category: Optional[TaskCategory] = None) -> str:
     elif category == TaskCategory.MATHEMATICAL_REASONING:
         # Intro cumlesini kaldir
         text = _strip_intro(text)
-
-    elif category == TaskCategory.FACTUAL_KNOWLEDGE:
-        # Intro cumlesini kaldir
-        text = _strip_intro(text)
-
-    elif category == TaskCategory.TEXT_SUMMARIZATION:
-        # Intro cumlesini kaldir
-        text = _strip_intro(text)
+        # "Final Answer: 42" veya "The answer is 42" → sadece "42"
+        final_match = _MATH_FINAL_ANSWER.search(text)
+        if final_match:
+            text = final_match.group(1).replace(",", "")
 
     elif category == TaskCategory.LOGICAL_REASONING:
         # Intro cumlesini kaldir
+        text = _strip_intro(text)
+
+    else:
+        # Factual, Summarization ve diger kategoriler icin genel intro temizligi
         text = _strip_intro(text)
 
     # Genel: basta/sonda gereksiz newline temizligi

@@ -92,14 +92,19 @@ _HEURISTIC_RULES: list[tuple[TaskCategory, re.Pattern]] = [
                 r"\bcorrect\s+this\s+code\b|\brefactor\b|\berror\s+in\b|\boptimize\b|"
                 r"\brecursion\b|\bmemoization\b|\bhas\s+a\s+(bug|problem|issue)\b|"
                 r"\bwhat('s|\s+is)\s+wrong\s+with\b|\brace\s+condition\b|\bconcurrency\s+(issue|bug|problem)\b|"
-                r"\bcrash(es|ing)?\b|\bfails?\s+(with|when|for)\b|\bnot\s+working\b", re.IGNORECASE)),
+                r"\bcrash(es|ing)?\b|\bfails?\s+(with|when|for)\b|\bnot\s+working\b|"
+                r"\bfind\s+the\s+error\b|\bdoesn'?t\s+work\s+as\s+expected\b|"
+                r"\bincorrect\s+output\b|\bexpected\s+.*?\bactual\b|"
+                r"\b(TypeError|ValueError|IndexError|KeyError|AttributeError|NameError|SyntaxError|RuntimeError)\b", re.IGNORECASE)),
     (TaskCategory.CODE_GENERATION,
      re.compile(r"\bwrite\s+(a|an|the)\b[^.\n]*\b(function|class|method|script|program|code)\b|"
                 r"\bwrite\s+code\b|\bimplement\s+(a|an|the)\b|\bpython\s+script\b|"
                 r"\bcreate\s+(a|an|the)\b[^.\n]*\b(function|class|method)\b|"
                 r"\bcode\s+(that|which|to)\b|\brespond\s+with\s+code\b|"
                 r"\bgenerate\s+(a|an|the)?\s*(function|class|code|script)\b|"
-                r"\bdevelop\s+(a|an|the)\b|\bbuild\s+(a|an|the)\b[^.\n]*\b(function|class|module|api)\b", re.IGNORECASE)),
+                r"\bdevelop\s+(a|an|the)\b|\bbuild\s+(a|an|the)\b[^.\n]*\b(function|class|module|api)\b|"
+                r"\bdesign\s+(a|an)\b[^.\n]*\b(function|class|system|module)\b|"
+                r"\bprogram\s+that\b|\balgorithm\s+(for|to)\b", re.IGNORECASE)),
     (TaskCategory.SENTIMENT_CLASSIFICATION,
      re.compile(r"\bsentiment\b|\bclassify\s+(the\s+)?(tone|sentiment|feeling)\b|"
                 r"\btone\s+of\b|\bpositive\s+or\s+negative\b|"
@@ -110,14 +115,18 @@ _HEURISTIC_RULES: list[tuple[TaskCategory, re.Pattern]] = [
      re.compile(r"\bsummar(i[sz]e|y|i[sz]ation|i[sz]ing)\b|\bin\s+\d+\s+words\s+or\s+less\b|"
                 r"\bbriefly\s+describe\b|\bgive\s+(a|the)\s+gist\b|"
                 r"\bcondense\b|\bshorten\b|\bin\s+brief\b|"
-                r"\bkey\s+(points?|takeaways?|findings?)\b|\btl;?dr\b", re.IGNORECASE)),
+                r"\bkey\s+(points?|takeaways?|findings?)\b|\btl;?dr\b|"
+                r"\bmain\s+idea\b|\bin\s+one\s+sentence\b|"
+                r"\bwhat\s+is\s+this\s+(?:text\s+)?about\b|\bparaphrase\b", re.IGNORECASE)),
     (TaskCategory.LOGICAL_REASONING,
      re.compile(r"who\s+(owns|is|has|lives)\b|each\s+own[s]?\s+a\s+different|"
                 r"logic\s+puzzle|true\s+or\s+false|\bpuzzle\b|\briddle\b|"
                 r"\bdeduce\b|\bdeduct(ion|ive)\b|\bknights?\s+and\s+knaves?\b|"
                 r"\bif.*then.*who\b|\bclue[s]?\b|\bgiven\s+that\b|"
                 r"\bsit\s+in\s+a\s+row\b|\bin\s+a\s+row\b[^.]*\bwho\b|"
-                r"\bwhat\s+is\s+the\s+order\b|\barrange\b[^.]*\b(order|sequence)\b", re.IGNORECASE)),
+                r"\bwhat\s+is\s+the\s+order\b|\barrange\b[^.]*\b(order|sequence)\b|"
+                r"\bsyllogism\b|\binfer\b|\bconclusion\s+(?:is|follows)\b|"
+                r"\ball\s+\w+\s+are\b[^.]*\bsome\b", re.IGNORECASE)),
     (TaskCategory.MATHEMATICAL_REASONING,
      re.compile(r"\$\s?\d|\d+\s?%|discount(ed)?|per\s?cent|percentage|\bcalculate\b|"
                 r"\bequation\b|\bcompute\b|\bplus\b|\bminus\b|\bmultiplied\b|"
@@ -127,13 +136,17 @@ _HEURISTIC_RULES: list[tuple[TaskCategory, re.Pattern]] = [
                 r"\bapples?\b[^.]*\b(sells?|gives?|buys?)\b|"
                 r"\binterest\s+rate\b|\bprofit\b|\brevenue\b|\bmargin\b|"
                 r"\barea\b|\bvolume\b|\bperimeter\b|\bcircumference\b|"
-                r"\baverage\b|\bmean\b|\bmedian\b", re.IGNORECASE)),
+                r"\baverage\b|\bmean\b|\bmedian\b|"
+                r"\bprobability\b|\bcombination\b|\bpermutation\b|\bfactorial\b|"
+                r"\bderivative\b|\bintegral\b|\blimit\b|\bgeometr(y|ic)\b", re.IGNORECASE)),
     # --- Factual Knowledge: fallback - soru kaliplari (diger kategorilere esmesmediyse) ---
     (TaskCategory.FACTUAL_KNOWLEDGE,
      re.compile(r"^\s*(what|who|when|where|which|how)\s+(is|was|are|were|did|does|do|many|much)\b|"
                 r"\bexplain\b|\bdescribe\b|\bdefine\b|\bwhat\s+year\b|\bname\s+the\b|"
                 r"\btell\s+me\s+about\b|\bwhat\s+happens\s+when\b|\bwhy\s+does\b|"
-                r"\bwhat\s+causes\b|\bwhat\s+are\s+the\b", re.IGNORECASE)),
+                r"\bwhat\s+causes\b|\bwhat\s+are\s+the\b|"
+                r"\blist\s+the\b|\bname\s+(three|five|ten|\d+)\b|\bgive\s+examples?\s+of\b|"
+                r"\bwhat\s+is\s+the\s+difference\b|\bcompare\b[^.\n]*\band\b", re.IGNORECASE)),
 ]
 
 _CLASSIFIER_SYSTEM_PROMPT = (
