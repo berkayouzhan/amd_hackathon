@@ -15,7 +15,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white" alt="Python 3.11"/>
-  <img src="https://img.shields.io/badge/Tests-133%20passed-brightgreen?logo=pytest" alt="133 Tests Passed"/>
+  <img src="https://img.shields.io/badge/Tests-147%20passed-brightgreen?logo=pytest" alt="147 Tests Passed"/>
   <img src="https://img.shields.io/badge/Docker-linux%2Famd64-blue?logo=docker" alt="Docker"/>
   <img src="https://img.shields.io/badge/Platform-Fireworks%20AI-orange" alt="Fireworks AI"/>
   <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License"/>
@@ -59,11 +59,11 @@ graph LR
 
 ## 🎯 Key Features
 
-- **🔋 Zero-Token Solving** — Arithmetic, percentages (`15% of 200`), unit conversions (`5 km to m`), square/cube/sqrt solved without any API calls
+- **🔋 Zero-Token Solving** — Arithmetic, percentages (`15% of 200`), unit conversions (`5 km to m`), temperature (`100 Celsius to Fahrenheit`), sqrt (`sqrt(144)`), simple discounts, square/cube solved without any API calls
 - **🏷️ Smart Triage** — Two-layer classifier (regex heuristics + lightweight model fallback) categorizes tasks at near-zero cost
 - **🎯 Optimal Model Selection** — Each of 8 categories is routed to the best-fit model
 - **🛡️ Speculative Validation** — Free deterministic checks catch empty/truncated/invalid responses, triggering corrective retries
-- **⚡ Gemma Circuit-Breaker** — After the first Gemma failure, subsequent tasks skip the timeout
+- **⚡ Gemma Circuit-Breaker** — Time-based reset with max 2 failures before permanent shutdown
 - **🧠 Local Model Tier** — Qwen 2.5 1.5B runs inside the container for sentiment/NER/summary at 0 Fireworks tokens
 - **🔒 Robust Batch Processing** — Isolated error handling per task, atomic file writes, deadline-aware processing
 - **📊 Monitoring Dashboard** — Real-time dark-mode dashboard visualizing routing decisions, token usage, and pipeline flow
@@ -72,7 +72,7 @@ graph LR
 
 | Category | Model Role | Routing Strategy | max_tokens |
 |----------|-----------|------------------|-----------|
-| Factual Knowledge | default | Gemma → MiniMax M3 fallback | 160 |
+| Factual Knowledge | default | Local Qwen → Gemma → MiniMax M3 fallback | 160 |
 | Mathematical Reasoning | reasoning | MiniMax M3 (concise step-by-step) | 320 |
 | Sentiment Classification | default | Local Qwen → Gemma → MiniMax M3 | 48 |
 | Text Summarization | default | Local Qwen → Gemma → MiniMax M3 | 192 |
@@ -103,7 +103,7 @@ optiroute-ai/
 ├── local_test/                # Sample task sets for development
 │   ├── tasks.json             # 8 tasks (one per category)
 │   └── tasks_challenge.json   # 15 challenging edge-case tasks
-├── tests/                     # pytest suite (133 tests, no real API calls)
+├── tests/                     # pytest suite (147 tests, no real API calls)
 ├── Dockerfile                 # Multi-stage build (Python 3.11 + Qwen model)
 └── requirements.txt           # openai, python-dotenv, tenacity, llama-cpp-python
 ```
@@ -126,7 +126,7 @@ cp .env.example .env
 pytest tests/ -v
 ```
 
-All 133 tests run with mocked `FireworksClient` — **none connect to the real Fireworks API**, so they work without an API key and complete in under 2 seconds.
+All 147 tests run with mocked `FireworksClient` — **none connect to the real Fireworks API**, so they work without an API key and complete in under 2 seconds.
 
 ## 🖥️ Offline End-to-End Test (no API key needed)
 
@@ -169,8 +169,8 @@ docker buildx build --platform linux/amd64 --tag <your-image>:latest --push .
 - [x] Image uses `linux/amd64` manifest
 - [x] Image size ≤ 10GB
 - [x] `.env` file is NOT copied into the image (`.dockerignore` prevents this)
-- [x] 133 automated tests passing
-- [x] Gemma circuit-breaker for runtime optimization
+- [x] 147 automated tests passing
+- [x] Gemma circuit-breaker with time-based reset
 - [x] Local model (Qwen 2.5) for 0-token inference
 - [x] Monitoring dashboard included
 - [x] Run report auto-generated
@@ -180,7 +180,7 @@ docker buildx build --platform linux/amd64 --tag <your-image>:latest --push .
 | Decision | Rationale |
 |----------|-----------|
 | Gemma "try first, fallback silently" | Gemma bonus prize opportunity, but not serverless on Fireworks |
-| Circuit-breaker after first Gemma failure | Prevents 6s×N timeout waste across batch |
+| Circuit-breaker with time-based reset | Prevents permanent Gemma shutdown on transient errors |
 | Local Qwen model for light categories | 0 Fireworks tokens for sentiment/NER/summarization |
 | Corrective retry on same model | No clear model ladder in Track 1; different model adds complexity |
 | `temperature=0.0` default | Consistency > creativity for a deterministic router |
@@ -194,7 +194,7 @@ docker buildx build --platform linux/amd64 --tag <your-image>:latest --push .
 - **AI Platform:** Fireworks AI
 - **Models:** MiniMax M3, Kimi K2P7 Code, Google Gemma 4, Qwen 2.5 (local)
 - **Containerization:** Docker (multi-stage build)
-- **Testing:** pytest (133 tests)
+- **Testing:** pytest (147 tests)
 - **Dashboard:** HTML/CSS/JS + Chart.js
 
 ## 📄 License

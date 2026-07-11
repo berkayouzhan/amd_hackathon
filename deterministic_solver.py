@@ -34,10 +34,10 @@ _ARITH_PATTERN = re.compile(
 )
 
 # "Calculate: 15.5 * (40 / (2.5 + 1.5)) - 100" gibi parantezli ifadeler.
-# Kelime icermemeli, sadece sayi + operator + parantez.
+# Kelime icermemeli, sadece sayi + operator + parantez + izinli fonksiyon adlari (sqrt).
 _EXPR_PATTERN = re.compile(
     r"^\s*(?:(?:what\s+is|calculate|compute|evaluate|result\s+of)\s*:?\s*)?"
-    r"([\d\s+\-*/().^%]+)\s*\??\s*$",
+    r"([\d\s+\-*/().^%a-zA-Z_]+)\s*\??\s*$",
     re.IGNORECASE,
 )
 
@@ -83,6 +83,27 @@ _UNIT_CONVERT_ALT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# Sicaklik donusum: "Convert 100 Celsius to Fahrenheit" / "What is 32 F in C?"
+_TEMP_PATTERN = re.compile(
+    r"^\s*(?:(?:what\s+is|convert)\s+)?([-\d.]+)\s*(?:degrees?\s+)?"
+    r"(celsius|fahrenheit|kelvin|[cfk])\s+(?:in|to|=)\s*(?:degrees?\s+)?"
+    r"(celsius|fahrenheit|kelvin|[cfk])\s*\??\s*$",
+    re.IGNORECASE,
+)
+
+_TEMP_ALIASES = {
+    "c": "celsius", "f": "fahrenheit", "k": "kelvin",
+    "celsius": "celsius", "fahrenheit": "fahrenheit", "kelvin": "kelvin",
+}
+
+# Basit tek-adimli indirim: "If something costs $40 and has a 25% discount, what is the final price?"
+_SIMPLE_DISCOUNT_PATTERN = re.compile(
+    r"(?:costs?|priced?\s+at|is)\s+\$?(\d+(?:\.\d+)?).*?"
+    r"(\d+(?:\.\d+)?)\s*%\s*(?:discount|off|reduction).*?"
+    r"(?:final|new|discounted)?\s*(?:price|cost|amount)",
+    re.IGNORECASE,
+)
+
 # Guvenli AST degerlendirme icin izin verilen operatorler
 _SAFE_OPERATORS = {
     ast.Add: operator.add,
@@ -120,6 +141,14 @@ def _safe_eval(node):
         if op_type not in _SAFE_OPERATORS:
             raise ValueError(f"Izin verilmeyen operator: {op_type}")
         return _SAFE_OPERATORS[op_type](_safe_eval(node.operand))
+    elif isinstance(node, ast.Call):
+        # Guvenli fonksiyon cagrilari: sadece sqrt desteklenir
+        if isinstance(node.func, ast.Name) and node.func.id == "sqrt" and len(node.args) == 1:
+            arg = _safe_eval(node.args[0])
+            if isinstance(arg, (int, float)) and arg >= 0:
+                return math.sqrt(arg)
+            raise ValueError("sqrt icin negatif deger")
+        raise ValueError(f"Izin verilmeyen fonksiyon: {getattr(node.func, 'id', node.func)}")
     else:
         raise ValueError(f"Izin verilmeyen AST dugumu: {type(node)}")
 
@@ -260,6 +289,55 @@ def try_solve(prompt: str) -> Optional[str]:
     if unit is not None:
         return unit
 
+    # Sicaklik donusum
+    temp = _try_temperature_conversion(prompt)
+    if temp is not None:
+        return temp
+
+    # Basit tek-adimli indirim
+    discount = _try_simple_discount(prompt)
+    if discount is not None:
+        return discount
+
     # Son olarak parantezli/karmasik ifade formu dene
     return _try_expression(prompt)
+
+
+def _try_temperature_conversion(prompt: str) -> Optional[str]:
+    """Sicaklik donusum: 'Convert 100 Celsius to Fahrenheit' -> 212"""
+    match = _TEMP_PATTERN.match(prompt.strip())
+    if not match:
+        return None
+    value = float(match.group(1))
+    from_unit = _TEMP_ALIASES.get(match.group(2).lower())
+    to_unit = _TEMP_ALIASES.get(match.group(3).lower())
+    if not from_unit or not to_unit or from_unit == to_unit:
+        return None
+
+    if from_unit == "celsius" and to_unit == "fahrenheit":
+        result = value * 9/5 + 32
+    elif from_unit == "fahrenheit" and to_unit == "celsius":
+        result = (value - 32) * 5/9
+    elif from_unit == "celsius" and to_unit == "kelvin":
+        result = value + 273.15
+    elif from_unit == "kelvin" and to_unit == "celsius":
+        result = value - 273.15
+    elif from_unit == "fahrenheit" and to_unit == "kelvin":
+        result = (value - 32) * 5/9 + 273.15
+    elif from_unit == "kelvin" and to_unit == "fahrenheit":
+        result = (value - 273.15) * 9/5 + 32
+    else:
+        return None
+    return _format_number(result)
+
+
+def _try_simple_discount(prompt: str) -> Optional[str]:
+    """Basit tek-adimli indirim: 'costs $40, 25% discount, final price?' -> 30"""
+    match = _SIMPLE_DISCOUNT_PATTERN.search(prompt.strip())
+    if not match:
+        return None
+    price = float(match.group(1))
+    discount_pct = float(match.group(2))
+    result = price * (1 - discount_pct / 100)
+    return _format_number(result)
 
